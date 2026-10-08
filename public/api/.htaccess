@@ -1,0 +1,3 @@
+<FilesMatch "^(lib|config)\.php$">
+  Require all denied
+</FilesMatch>

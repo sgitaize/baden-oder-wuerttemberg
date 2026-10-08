@@ -1,0 +1,15 @@
+# interne Notizen und Zugangsdaten (nie ins Repo)
+.env
+.env.*
+INTERN.md
+LOG.md
+# Build-Umgebung und Rohdaten-Cache (per build/fetch.sh neu ladbar)
+build/.venv/
+build/cache/
+# Laufzeitdaten und Server-Konfiguration
+public/api/data/*
+!public/api/data/.htaccess
+public/api/config.php
+node_modules/
+.DS_Store
+__pycache__/
