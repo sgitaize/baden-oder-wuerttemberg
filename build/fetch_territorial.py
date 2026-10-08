@@ -13,6 +13,8 @@ from pathlib import Path
 BASE = "https://territorial.de/"
 LANDS = {"B": "baden/kreise.htm", "W": "wuerttbg/kreise.htm", "H": "hohenz/kreise.htm", "X": "hessen/kreise.htm"}
 OUT = Path(__file__).resolve().parent / "cache" / "territorial.json"
+# Known copy-paste errors in page titles on territorial.de (checked by hand, 2026-10-08)
+TITLE_FIXES = {"lahrette/gem1945.htm": "Gemeindeverzeichnis Landkreis Lahr [Stand: 1. 1. 1945]"}
 
 
 PAGES = OUT.parent / "territorial_pages"
@@ -70,6 +72,9 @@ def main():
                 seen.add(url)
                 gp = get(url)
                 title = " ".join(text(re.search(r"<h2>(.*?)</h2>", gp, re.S).group(1)))
+                for suffix, fixed in TITLE_FIXES.items():
+                    if url.endswith(suffix):
+                        title = fixed
                 names = []
                 for row in re.findall(r"<tr>(.*?)</tr>", gp, re.S):
                     cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)
@@ -77,6 +82,10 @@ def main():
                         name = next((" ".join(text(c)) for c in cells[1:] if text(c)), "")
                         if name:
                             names.append(name)
+                if land == "X":  # from Hessen only the exclave Wimpfen lies in today's BW
+                    names = [n for n in names if "Wimpfen" in n]
+                    if not names:
+                        continue
                 result.append({"land": land, "kreis": title, "url": url, "gemeinden": names})
                 print(land, title, len(names))
     OUT.write_text(json.dumps(result, ensure_ascii=False, indent=1))

@@ -7,170 +7,159 @@
   <meta name="description" content="Schlag nach, ob ein Ort in Baden-Württemberg früher badisch, württembergisch oder hohenzollerisch war – über 9.000 Orte, mit Karte und Quellen." />
   <meta property="og:title" content="Baden oder Württemberg?" />
   <meta property="og:description" content="Badisch, württembergisch oder hohenzollerisch? Über 9.000 Orte mit historischer Karte und Quellen." />
-  <meta name="theme-color" content="#14110f" />
+  <meta name="theme-color" content="#151719" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
-  <a class="skip" href="#suche">Zur Suche springen</a>
+  <a class="skip" href="#q">Zur Suche springen</a>
 
-  <header class="top">
-    <a class="brand" href="./" aria-label="Startseite">
-      <span class="brand__flags" aria-hidden="true"><i class="f f--B"></i><i class="f f--W"></i></span>
-      <span>Baden <em>oder</em> Württemberg?</span>
-    </a>
-    <nav class="top__nav">
+  <header class="mast">
+    <a class="mast__title" href="./">Baden <i>oder</i> Württemberg</a>
+    <nav class="mast__nav" aria-label="Abschnitte">
       <a href="#karte">Karte</a>
       <a href="#geschichte">Geschichte</a>
       <a href="#quellen">Quellen</a>
-      <button id="themeToggle" class="icon-btn" type="button" aria-label="Hell/Dunkel umschalten" title="Hell/Dunkel">◐</button>
+      <button id="themeToggle" class="mast__theme" type="button" aria-label="Hell/Dunkel umschalten">Tag</button>
     </nav>
   </header>
 
   <main>
-    <section class="hero" id="suche">
-      <p class="eyebrow">Ortsnachschlag · Stand vor 1945</p>
-      <h1>Badisch oder württembergisch?<br /><span class="hero__alt">Oder doch hohenzollerisch?</span></h1>
-      <p class="lead">Bis 1945 waren Baden und Württemberg eigene Länder – dazu kamen die preußischen Hohenzollerischen Lande und mit Bad Wimpfen sogar ein Stück Hessen. Gib einen Ort, Ortsteil oder Weiler ein und finde heraus, wo er damals lag.</p>
+    <section class="hero" aria-labelledby="heroQ">
+      <h1 class="hero__q" id="heroQ">Wo lag dein Ort vor&nbsp;1945?</h1>
 
-      <div class="search" role="combobox" aria-expanded="false" aria-owns="suggestions" aria-haspopup="listbox">
-        <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
-        <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Ort suchen, z. B. Schwenningen, Tennenbronn, Hechingen …" aria-label="Ort suchen" aria-autocomplete="list" aria-controls="suggestions" />
+      <div class="sign-wrap">
+        <div class="sign" id="sign" data-state="">
+          <div class="sign__inner">
+            <label class="sr" for="q">Ortsname</label>
+            <input id="q" class="sign__input" type="search" autocomplete="off" spellcheck="false" placeholder="Ortsname" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="suggestions" />
+            <p class="sign__sub" id="signSub">Baden · Württemberg · Hohenzollern</p>
+          </div>
+        </div>
         <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
       </div>
-      <p class="hero__try">Probier mal:
-        <button type="button" class="chip" data-try="Villingen">Villingen</button>
-        <button type="button" class="chip" data-try="Schwenningen">Schwenningen</button>
-        <button type="button" class="chip" data-try="Bad Wimpfen">Bad Wimpfen</button>
-        <button type="button" class="chip" data-try="Sigmaringen">Sigmaringen</button>
-        <button type="button" class="chip" data-try="Tennenbronn">Tennenbronn</button>
+
+      <p class="hero__try">Zum Beispiel
+        <button type="button" class="tl" data-try="Villingen">Villingen</button>,
+        <button type="button" class="tl" data-try="Schwenningen">Schwenningen</button>,
+        <button type="button" class="tl" data-try="Bad Wimpfen">Bad Wimpfen</button>,
+        <button type="button" class="tl" data-try="Sigmaringen">Sigmaringen</button> oder
+        <button type="button" class="tl" data-try="Tennenbronn">Tennenbronn</button>.
       </p>
-      <p class="hero__stats" id="heroStats" aria-live="polite">Lade Ortsdaten …</p>
+
+      <p class="hero__intro">Bis 1945 waren Baden und Württemberg eigene Länder. Dazwischen lag das preußische Hohenzollern – und Bad Wimpfen gehörte sogar zu Hessen. Dieses Verzeichnis ordnet <span id="countPlaces">über 9.000</span> Städte, Dörfer, Ortsteile und Weiler ihrem alten Land zu.</p>
     </section>
 
     <section class="result-wrap" id="ergebnis" hidden>
-      <article class="result" id="result" aria-live="polite"></article>
+      <article class="res" id="result" aria-live="polite"></article>
     </section>
 
-    <section class="map-section" id="karte">
-      <div class="section-head">
-        <h2>Die alte Grenze auf der Karte</h2>
-        <p>Die Flächen zeigen die Länder im Stand von 1939. Tipp irgendwo auf die Karte – wir suchen den nächstgelegenen Ort.</p>
-      </div>
-      <div class="map-wrap">
+    <section class="sec" id="karte">
+      <header class="sec__head"><span class="sec__no">§ 1</span><h2>Die Grenze von 1939</h2></header>
+      <p class="sec__lead">Schraffiert: die Länder zum 1.&nbsp;Januar 1939. Klick in die Karte, um den nächsten Ort nachzuschlagen.</p>
+      <figure class="atlas">
         <div id="map" aria-label="Karte mit den historischen Ländergrenzen"></div>
-        <div class="legend" aria-label="Legende">
-          <span><i class="sw sw--B"></i>Baden</span>
-          <span><i class="sw sw--W"></i>Württemberg</span>
-          <span><i class="sw sw--H"></i>Hohenzollern (Preußen)</span>
-          <span><i class="sw sw--X"></i>Hessen</span>
-        </div>
-      </div>
-      <div class="stats" id="stats"></div>
+        <figcaption class="atlas__legend">
+          <span><i class="hatch hatch--B"></i>Republik Baden</span>
+          <span><i class="hatch hatch--W"></i>Volksstaat Württemberg</span>
+          <span><i class="hatch hatch--H"></i>Hohenzollerische Lande (Preußen)</span>
+          <span><i class="hatch hatch--X"></i>Volksstaat Hessen</span>
+        </figcaption>
+      </figure>
+      <table class="tally" id="stats" aria-label="Statistik"></table>
     </section>
 
-    <section class="history" id="geschichte">
-      <div class="section-head">
-        <h2>Kurz erklärt: Wie aus drei Ländern eins wurde</h2>
-        <p>Die Grenze zwischen „Badenern“ und „Schwaben“ ist über 200 Jahre alt – und bis heute in Dialekt, Konfession und Lokalstolz spürbar.</p>
-      </div>
-      <ol class="timeline">
-        <li><time>1803–1810</time><h3>Napoleon räumt auf</h3><p>Mit Reichsdeputationshauptschluss und Rheinbund werden hunderte Herrschaften, Reichsstädte und Klöster aufgelöst. Baden wird 1806 Großherzogtum, Württemberg Königreich – beide wachsen auf ein Vielfaches.</p></li>
-        <li><time>1850</time><h3>Hohenzollern wird preußisch</h3><p>Die Fürstentümer Hohenzollern-Hechingen und Hohenzollern-Sigmaringen fallen an Preußen. Bis 1945 liegt mitten in Schwaben ein preußischer Regierungsbezirk.</p></li>
-        <li><time>1918</time><h3>Republik und Volksstaat</h3><p>Nach dem Ende der Monarchien heißen die Länder Republik Baden und Volksstaat Württemberg. Die Grenzen bleiben bis 1945 nahezu gleich – dieser Stand ist die Grundlage dieser Seite.</p></li>
-        <li><time>1945</time><h3>Zonengrenze statt Landesgrenze</h3><p>Die Besatzungsmächte teilen neu: Im Norden entsteht Württemberg-Baden (US-Zone), im Süden (Süd-)Baden und Württemberg-Hohenzollern (französische Zone). Bad Wimpfen, bis dahin hessische Exklave, kommt zu Württemberg-Baden.</p></li>
-        <li><time>1951–1952</time><h3>Der Südweststaat</h3><p>Bei der Volksabstimmung am 9. Dezember 1951 stimmt eine Mehrheit für den Zusammenschluss; am 25. April 1952 wird Baden-Württemberg gegründet. In Südbaden war die Mehrheit dagegen.</p></li>
-        <li><time>1970</time><h3>Baden bleibt</h3><p>In einer erneuten Abstimmung im badischen Landesteil stimmen am 7. Juni 1970 rund 82&nbsp;% für den Verbleib in Baden-Württemberg.</p></li>
-        <li><time>1971–1975</time><h3>Gemeinde- und Kreisreform</h3><p>Viele Gemeinden werden zusammengelegt – teils über die alte Grenze hinweg. Deshalb können heutige Städte wie Villingen-Schwenningen oder Schramberg badische <em>und</em> württembergische Ortsteile haben.</p></li>
+    <section class="sec" id="geschichte">
+      <header class="sec__head"><span class="sec__no">§ 2</span><h2>Wie aus drei Ländern eins wurde</h2></header>
+      <dl class="chrono">
+        <dt>1806</dt>
+        <dd><b>Napoleon räumt auf.</b> Mit Reichsdeputationshauptschluss und Rheinbund verschwinden hunderte Herrschaften, Reichsstädte und Klöster. Baden wird Großherzogtum, Württemberg Königreich – beide wachsen auf ein Vielfaches.</dd>
+        <dt>1850</dt>
+        <dd><b>Hohenzollern wird preußisch.</b> Die Fürstentümer Hohenzollern-Hechingen und Hohenzollern-Sigmaringen fallen an Preußen. Bis 1945 liegt mitten in Schwaben ein preußischer Regierungsbezirk.</dd>
+        <dt>1918</dt>
+        <dd><b>Republik und Volksstaat.</b> Nach dem Ende der Monarchien heißen die Länder Republik Baden und Volksstaat Württemberg. Die Grenzen bleiben bis 1945 nahezu gleich – dieser Stand ist die Grundlage des Verzeichnisses.</dd>
+        <dt>1945</dt>
+        <dd><b>Zonengrenze statt Landesgrenze.</b> Im Norden entsteht Württemberg-Baden (US-Zone), im Süden (Süd-)Baden und Württemberg-Hohenzollern (französische Zone). Die hessische Exklave Wimpfen kommt zu Württemberg-Baden.</dd>
+        <dt>1952</dt>
+        <dd><b>Der Südweststaat.</b> Nach der Volksabstimmung vom 9.&nbsp;Dezember 1951 wird am 25.&nbsp;April 1952 Baden-Württemberg gegründet. In Südbaden war die Mehrheit dagegen.</dd>
+        <dt>1970</dt>
+        <dd><b>Baden bleibt.</b> Bei einer erneuten Abstimmung im badischen Landesteil stimmen am 7.&nbsp;Juni 1970 rund 82&nbsp;% für den Verbleib.</dd>
+        <dt>1975</dt>
+        <dd><b>Gemeindereform.</b> Viele Gemeinden werden zusammengelegt, manche über die alte Grenze hinweg. Seitdem haben Städte wie Villingen-Schwenningen oder Schramberg badische <em>und</em> württembergische Ortsteile.</dd>
+      </dl>
+    </section>
+
+    <section class="sec" id="quellen">
+      <header class="sec__head"><span class="sec__no">§ 3</span><h2>Quellen und Methode</h2></header>
+      <ol class="biblio">
+        <li><b>Historische Grenzen.</b> <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>, Relationen Republik Baden (1918–1945), Volksstaat Württemberg (1918–1945), Hohenzollerische Lande (1928–1945) und Volksstaat Hessen (1932–1945). Lizenz CC0.</li>
+        <li><b>Orte und Gemeinden von heute.</b> <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, © OpenStreetMap-Mitwirkende, Lizenz ODbL. Jeder Ort wird über seine Koordinate dem alten Land zugeordnet.</li>
+        <li><b>Gegenprobe.</b> Gemeindeverzeichnisse aller Land- und Stadtkreise, Stand 1.&nbsp;1.&nbsp;1945, aus <a href="https://territorial.de/">territorial.de</a> von Rolf Jehke. <span id="validationText"></span></li>
       </ol>
-    </section>
-
-    <section class="sources" id="quellen">
-      <div class="section-head">
-        <h2>Quellen &amp; Methode</h2>
-        <p>Jede Zuordnung ist nachvollziehbar – und wo Unsicherheit bleibt, sagen wir das.</p>
-      </div>
-      <div class="cards">
-        <div class="card">
-          <h3>Historische Grenzen</h3>
-          <p><a href="https://www.openhistoricalmap.org/" rel="noopener">OpenHistoricalMap</a> (CC0): Republik Baden (1918–1945), Volksstaat Württemberg (1918–1945), Hohenzollerische Lande (1928–1945) und Volksstaat Hessen (1932–1945). Stichtag ist der 1.&nbsp;1.&nbsp;1939.</p>
-        </div>
-        <div class="card">
-          <h3>Orte von heute</h3>
-          <p>Städte, Dörfer, Ortsteile und Weiler sowie heutige Gemeinde- und Kreisgrenzen aus <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a> (© OpenStreetMap-Mitwirkende, ODbL). Jeder Ort wird per Koordinate dem historischen Land zugeordnet.</p>
-        </div>
-        <div class="card">
-          <h3>Gegenprobe 1945</h3>
-          <p>Die Gemeindeverzeichnisse aller Land- und Stadtkreise zum 1.&nbsp;1.&nbsp;1945 von <a href="https://territorial.de/" rel="noopener">territorial.de</a> (Rolf Jehke). <span id="validationText">Für die meisten Gemeinden stimmen beide Quellen überein.</span> Wo es passt, verlinken wir den Kreis als Beleg.</p>
-        </div>
-        <div class="card">
-          <h3>Grenzen der Methode</h3>
-          <p>Liegt ein Ort näher als 250&nbsp;m an der alten Grenze, weisen wir darauf hin. Die Grenzlinien sind digitalisierte Rekonstruktionen; kleine Gebietstausche einzelner Gemarkungen können fehlen. Fehler gefunden? Melde ihn direkt beim Ort.</p>
-        </div>
-      </div>
-      <p class="sources__more">Daten und Code: Build-Skripte bereiten die Rohdaten auf und prüfen sie gegen das Gemeindeverzeichnis. Hinweise und Ergänzungen von Nutzer*innen werden gesichtet und fließen in künftige Versionen ein.</p>
+      <p class="sec__note">Liegt ein Ort näher als 250&nbsp;m an der alten Grenze, steht ein Hinweis dabei. Die Grenzlinien sind digitalisierte Rekonstruktionen; kleine Gebietstausche einzelner Gemarkungen können fehlen. Wer einen Fehler findet, meldet ihn direkt beim Ort – Rückmeldungen fließen in die nächste Ausgabe ein.</p>
     </section>
   </main>
 
-  <footer class="footer">
-    <p>Ein Projekt von <a href="https://simongutjahr.de">Simon Gutjahr</a> · <a href="https://simongutjahr.de/impressum/">Impressum</a> · <a href="#datenschutz" id="privacyLink">Datenschutz</a></p>
-    <p class="footer__small">Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende, Kartenkacheln © OpenStreetMap, historische Grenzen <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>.</p>
+  <footer class="colophon">
+    <p>Herausgegeben von <a href="https://simongutjahr.de">Simon Gutjahr</a> · <a href="https://simongutjahr.de/impressum/">Impressum</a> · <button type="button" class="tl" id="privacyLink">Datenschutz</button></p>
+    <p class="colophon__small">Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende · historische Grenzen <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a></p>
     <div class="privacy" id="datenschutz" hidden>
       <h2>Datenschutz in Kürze</h2>
       <p>Diese Seite setzt keine Cookies und kein Tracking. Für Karte und Schriften werden Inhalte von OpenStreetMap (Kartenkacheln), unpkg.com (Kartenbibliothek) und Google Fonts geladen; dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
-      <p>Wenn du eine Rückmeldung oder eine Geschichte abschickst, speichern wir den Text, den optionalen Namen und den Zeitpunkt. Deine IP-Adresse speichern wir nicht, nur einen täglich wechselnden, nicht umkehrbaren Hashwert zum Schutz vor Spam. Geschichten sind öffentlich sichtbar; Rückmeldungen zur Zuordnung sieht nur der Betreiber. Löschung auf Anfrage über die Kontaktdaten im <a href="https://simongutjahr.de/impressum/">Impressum</a>.</p>
+      <p>Wenn du eine Rückmeldung oder einen Chronik-Eintrag abschickst, speichern wir den Text, den optionalen Namen und den Zeitpunkt. Deine IP-Adresse speichern wir nicht, nur einen täglich wechselnden, nicht umkehrbaren Hashwert zum Schutz vor Spam. Chronik-Einträge sind öffentlich; Rückmeldungen zur Zuordnung sieht nur der Betreiber. Löschung auf Anfrage über die Kontaktdaten im <a href="https://simongutjahr.de/impressum/">Impressum</a>.</p>
     </div>
   </footer>
 
   <template id="tplResult">
-    <div class="result__band"></div>
-    <div class="result__body">
-      <p class="result__kicker"></p>
-      <h2 class="result__title"></h2>
-      <p class="result__verdict"></p>
-      <div class="result__notes"></div>
-      <dl class="result__facts"></dl>
-      <div class="result__actions">
-        <button type="button" class="btn btn--ghost" data-act="share">Link teilen</button>
-        <button type="button" class="btn btn--ghost" data-act="feedback">Zuordnung falsch?</button>
-      </div>
-      <form class="form form--feedback" hidden>
-        <h3>Stimmt etwas nicht?</h3>
-        <p class="form__hint">Sag uns, was deiner Meinung nach richtig ist – am besten mit Quelle. Rückmeldungen sieht nur der Betreiber.</p>
-        <fieldset class="seg">
-          <legend>Der Ort lag vor 1945 in …</legend>
-          <label><input type="radio" name="suggested" value="B" /> Baden</label>
-          <label><input type="radio" name="suggested" value="W" /> Württemberg</label>
-          <label><input type="radio" name="suggested" value="H" /> Hohenzollern</label>
-          <label><input type="radio" name="suggested" value="X" /> Hessen</label>
-          <label><input type="radio" name="suggested" value="?" checked /> anderes / weiß nicht</label>
-        </fieldset>
-        <label class="field">Begründung oder Quelle<textarea name="message" maxlength="2000" rows="3" required></textarea></label>
-        <label class="field">E-Mail für Rückfragen (optional, nicht öffentlich)<input type="email" name="email" maxlength="200" /></label>
+    <header class="res__head">
+      <p class="res__ctx"></p>
+      <p class="res__big"></p>
+      <p class="res__line"></p>
+    </header>
+    <dl class="ledger"></dl>
+    <div class="res__mixed"></div>
+    <ol class="notes"></ol>
+    <p class="res__actions">
+      <button type="button" class="tl" data-act="share">Link teilen</button>
+      <span aria-hidden="true">·</span>
+      <button type="button" class="tl" data-act="feedback">Zuordnung falsch?</button>
+    </p>
+    <form class="form form--feedback" hidden>
+      <h3 class="form__title">Berichtigung</h3>
+      <p class="form__hint">Was ist deiner Meinung nach richtig? Am besten mit Quelle. Nur der Betreiber sieht das.</p>
+      <fieldset class="opts">
+        <legend>Der Ort lag vor 1945 in</legend>
+        <label><input type="radio" name="suggested" value="B" /> Baden</label>
+        <label><input type="radio" name="suggested" value="W" /> Württemberg</label>
+        <label><input type="radio" name="suggested" value="H" /> Hohenzollern</label>
+        <label><input type="radio" name="suggested" value="X" /> Hessen</label>
+        <label><input type="radio" name="suggested" value="?" checked /> weiß nicht</label>
+      </fieldset>
+      <label class="field"><span>Begründung oder Quelle</span><textarea name="message" maxlength="2000" rows="3" required></textarea></label>
+      <label class="field"><span>E-Mail für Rückfragen (freiwillig, nicht öffentlich)</span><input type="email" name="email" maxlength="200" /></label>
+      <div class="hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
+      <div class="captcha"></div>
+      <p class="form__row"><button class="stamp" type="submit">Absenden</button><span class="form__status" role="status"></span></p>
+    </form>
+    <section class="chronik">
+      <header class="chronik__head">
+        <h3>Ortschronik <span class="chronik__place"></span></h3>
+        <button type="button" class="tl" data-act="story">Eintrag schreiben</button>
+      </header>
+      <p class="chronik__lead">Erinnerungen, Familiengeschichten, Dialekt, Anekdoten – was verbindest du mit dem Ort und seiner badischen, württembergischen oder hohenzollerischen Vergangenheit?</p>
+      <form class="form form--story" hidden>
+        <label class="field"><span>Name (freiwillig, öffentlich)</span><input type="text" name="author" maxlength="80" placeholder="z. B. Anna aus Schwenningen" /></label>
+        <label class="field"><span>Dein Eintrag</span><textarea name="body" maxlength="3000" rows="5" required></textarea></label>
         <div class="hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
         <div class="captcha"></div>
-        <div class="form__row"><button class="btn" type="submit">Rückmeldung senden</button><span class="form__status" role="status"></span></div>
+        <p class="form__row"><button class="stamp" type="submit">In die Chronik eintragen</button><span class="form__status" role="status"></span></p>
       </form>
-      <section class="stories">
-        <div class="stories__head">
-          <h3>Geschichten aus <span class="stories__place"></span></h3>
-          <button type="button" class="btn btn--small" data-act="story">Eigene Geschichte erzählen</button>
-        </div>
-        <form class="form form--story" hidden>
-          <p class="form__hint">Was verbindest du mit dem Ort und seiner badischen, württembergischen oder hohenzollerischen Vergangenheit? Erinnerungen, Familiengeschichte, Dialekt, Anekdoten – alles willkommen. Geschichten erscheinen öffentlich.</p>
-          <label class="field">Dein Name (optional, öffentlich)<input type="text" name="author" maxlength="80" placeholder="z. B. Anna aus Schwenningen" /></label>
-          <label class="field">Deine Geschichte<textarea name="body" maxlength="3000" rows="5" required></textarea></label>
-          <div class="hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
-          <div class="captcha"></div>
-          <div class="form__row"><button class="btn" type="submit">Geschichte veröffentlichen</button><span class="form__status" role="status"></span></div>
-        </form>
-        <ul class="stories__list"></ul>
-      </section>
-    </div>
+      <ol class="chronik__list"></ol>
+    </section>
   </template>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
