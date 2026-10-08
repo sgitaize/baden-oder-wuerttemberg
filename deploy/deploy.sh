@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Deploy: lädt den committeten UND gepushten Stand von public/ per FTPS in den Docroot.
-# Ziel: FTP-Root = Domain-Ordner, Docroot = httpdocs/, SQLite liegt außerhalb in private/.
+# Ziel: FTP-Root = Domain-Ordner, Docroot = httpdocs/. PHP darf (open_basedir) nur in httpdocs/,
+# daher liegt die SQLite-DB in httpdocs/api/data/ (per .htaccess gesperrt, Ordner für PHP beschreibbar).
 # Nutzung: deploy/deploy.sh   (Zugangsdaten in .env: DEPLOY_HOST, DEPLOY_USER, DEPLOY_PASS, SITE_URL, ADMIN_TOKEN, ADMIN_MAIL)
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -15,12 +16,8 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 git archive HEAD public | tar -x -C "$TMP"
 cat > "$TMP/public/api/config.php" <<PHP
 <?php
-return ['db_path' => dirname(__DIR__, 2) . '/private/bow.sqlite', 'admin_token' => '$ADMIN_TOKEN', 'admin_mail' => '${ADMIN_MAIL:-}', 'mail_from' => '${MAIL_FROM:-}'];
+return ['admin_token' => '$ADMIN_TOKEN', 'admin_mail' => '${ADMIN_MAIL:-}', 'mail_from' => '${MAIL_FROM:-}'];
 PHP
-
-# Ordner für die SQLite-Datenbank außerhalb des Docroots
-: > "$TMP/.keep"
-curl -sS --max-time 60 --ssl-reqd -k --ftp-create-dirs --user "$DEPLOY_USER:$DEPLOY_PASS" -T "$TMP/.keep" "ftp://$DEPLOY_HOST/private/.keep"
 
 cd "$TMP/public"
 n=0
@@ -30,6 +27,8 @@ while IFS= read -r -d '' f; do
     -T "$f" "ftp://$DEPLOY_HOST/httpdocs/$f"
   n=$((n + 1))
 done < <(find . -type f ! -name config.sample.php -print0)
+# PHP läuft als anderer User: Datenordner beschreibbar machen
+curl -sS --max-time 30 --ssl-reqd -k --user "$DEPLOY_USER:$DEPLOY_PASS" -o /dev/null "ftp://$DEPLOY_HOST/" -Q 'SITE CHMOD 777 httpdocs/api/data'
 echo "hochgeladen: $n Dateien ($(git -C "$OLDPWD" rev-parse --short HEAD))"
 
 check() { printf '%-28s %s\n' "$1" "$(curl -sk -o /dev/null -w '%{http_code}' "$SITE_URL/$1")"; }
@@ -38,4 +37,4 @@ check "data/places.json"
 check "api/api.php?a=captcha"
 check "api/lib.php"            # erwartet 403
 check "api/config.php"         # erwartet 403
-check "api/data/.htaccess"     # erwartet 403
+check "api/data/bow.sqlite"    # erwartet 403
