@@ -648,13 +648,6 @@ newSearch.addEventListener('click', () => {
   input.select();
 });
 
-/* ---------- Datenschutz ---------- */
-$('#privacyLink').addEventListener('click', () => {
-  const p = $('#datenschutz');
-  p.hidden = !p.hidden;
-  if (!p.hidden) p.scrollIntoView({ behavior: 'smooth' });
-});
-
 loadData().catch((e) => {
   console.error(e);
   signSub.textContent = 'Ortsdaten konnten nicht geladen werden – bitte neu laden.';

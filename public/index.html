@@ -9,10 +9,8 @@
   <meta property="og:description" content="Badisch, württembergisch oder hohenzollerisch? Über 9.000 Orte mit historischer Karte und Quellen." />
   <meta name="theme-color" content="#151719" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="assets/fonts.css" />
+  <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
@@ -109,13 +107,8 @@
   </main>
 
   <footer class="colophon">
-    <p>Herausgegeben von <a href="https://simongutjahr.de">Simon Gutjahr</a> · <a href="https://simongutjahr.de/impressum/">Impressum</a> · <button type="button" class="tl" id="privacyLink">Datenschutz</button></p>
-    <p class="colophon__small">Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende · historische Grenzen <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a></p>
-    <div class="privacy" id="datenschutz" hidden>
-      <h2>Datenschutz in Kürze</h2>
-      <p>Diese Seite setzt keine Cookies und kein Tracking. Für Karte, Bilder und Schriften werden Inhalte von OpenStreetMap (Kartenkacheln), Wikimedia Commons (Wappen und Fotos), unpkg.com (Kartenbibliothek) und Google Fonts geladen; dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
-      <p>Wenn du eine Rückmeldung oder einen Chronik-Eintrag abschickst, speichern wir den Text, den optionalen Namen und den Zeitpunkt. Deine IP-Adresse speichern wir nicht, nur einen täglich wechselnden, nicht umkehrbaren Hashwert zum Schutz vor Spam. Chronik-Einträge sind öffentlich; Rückmeldungen zur Zuordnung sieht nur der Betreiber. Löschung auf Anfrage über die Kontaktdaten im <a href="https://simongutjahr.de/impressum/">Impressum</a>.</p>
-    </div>
+    <p>Herausgegeben von <a href="https://simongutjahr.de">Simon Gutjahr</a> · <a href="https://simongutjahr.de/impressum/">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>
+    <p class="colophon__small">Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende · historische Grenzen <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a> · Bilder <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> · Karte mit <a href="https://leafletjs.com/">Leaflet</a></p>
   </footer>
 
   <template id="tplResult">
@@ -184,7 +177,7 @@
     </section>
   </template>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="assets/vendor/leaflet/leaflet.js"></script>
   <script src="assets/app.js" defer></script>
 </body>
 </html>

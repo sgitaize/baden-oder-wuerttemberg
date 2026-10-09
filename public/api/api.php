@@ -28,6 +28,7 @@ try {
     $placeName = clean($in['placeName'] ?? '', 120);
     if ($place <= 0 || $placeName === '') fail('Ort fehlt.');
     if (!captcha_verify((string) ($in['captcha'] ?? ''))) fail('Die Roboter-Prüfung ist abgelaufen oder ungültig. Bitte nochmal bestätigen.', 403);
+    purge_old();
     $ip = ip_hash();
     if (rate_limited($ip)) fail('Du hast gerade schon einiges geschickt – bitte versuch es später nochmal.', 429);
 

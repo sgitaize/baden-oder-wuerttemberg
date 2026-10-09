@@ -5,6 +5,8 @@ declare(strict_types=1);
 const CAPTCHA_MAX = 60000;      // proof-of-work search space (~1–2 s in a browser)
 const CAPTCHA_TTL = 900;        // seconds a challenge stays valid
 const LIMIT_PER_HOUR = 6;       // posts per visitor and hour (stories + feedback)
+const HASH_KEEP_DAYS = 7;       // visitor hash is removed from entries after this (see datenschutz.html)
+const DONE_FEEDBACK_DAYS = 183; // finished feedback is deleted after ~6 months
 
 function config(): array {
     static $cfg = null;
@@ -90,6 +92,15 @@ function captcha_verify(string $payload): bool {
     $st = db()->prepare('INSERT OR IGNORE INTO captcha_used (challenge, created) VALUES (?, ?)');
     $st->execute([$p['challenge'], time()]);
     return $st->rowCount() === 1;
+}
+
+// Retention rules promised in datenschutz.html
+function purge_old(): void {
+    $now = time();
+    foreach (['stories', 'feedback'] as $t) {
+        db()->prepare("UPDATE $t SET ip_hash = '' WHERE ip_hash != '' AND created < ?")->execute([$now - HASH_KEEP_DAYS * 86400]);
+    }
+    db()->prepare('DELETE FROM feedback WHERE done = 1 AND created < ?')->execute([$now - DONE_FEEDBACK_DAYS * 86400]);
 }
 
 function rate_limited(string $ip): bool {

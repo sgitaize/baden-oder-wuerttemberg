@@ -120,8 +120,9 @@ php -S 127.0.0.1:8099 -t public     # PHP ≥ 8.1 mit pdo_sqlite
 ## Rückmeldungen, Ortschronik, Datenschutz
 
 - `api/api.php` speichert Rückmeldungen (nur für die Moderation sichtbar) und Chronik-Einträge (öffentlich) in SQLite.
-- Captcha: Proof of Work nach dem Vorbild von [ALTCHA](https://altcha.org/) – der Browser sucht eine Zahl, deren SHA-256-Hash zur vom Server signierten Aufgabe passt (~0,5 s). Jede gelöste Aufgabe gilt nur einmal. Dazu ein Honeypot-Feld und höchstens 6 Beiträge pro Stunde.
-- Es werden keine Cookies gesetzt und keine IP-Adressen gespeichert, nur ein täglich wechselnder Hash für das Rate-Limit.
+- Captcha: Proof of Work nach dem Vorbild von [ALTCHA](https://altcha.org/) – der Browser sucht eine Zahl, deren SHA-256-Hash zur vom Server signierten Aufgabe passt (~0,5 s). Jede gelöste Aufgabe gilt nur einmal (Speicherung max. 30 min). Dazu ein Honeypot-Feld und höchstens 6 Beiträge pro Stunde.
+- Keine Cookies für Besucher*innen, kein Tracking, keine IP-Adressen in der Datenbank – nur ein täglich wechselnder Hash für das Rate-Limit, der nach 7 Tagen automatisch aus den Einträgen entfernt wird. Erledigte Rückmeldungen werden nach 6 Monaten automatisch gelöscht (`purge_old()` in `api/lib.php`).
+- Schriften (Barlow Condensed, IBM Plex Mono, Source Serif 4; SIL OFL) und Leaflet (BSD-2) liegen unter `public/assets/` – keine Anfragen an Google Fonts oder CDNs. Externe Abrufe gibt es nur noch für OSM-Kartenkacheln und Wikimedia-Bilder; beides steht in der [Datenschutzerklärung](public/datenschutz.html).
 - Moderation unter `/api/admin.php`; das Token steht in `api/config.php` (siehe `config.sample.php`, nicht im Repo).
 
 ## Lizenzhinweise
