@@ -1,0 +1,39 @@
+MIT License
+
+Copyright (c) 2026 Simon Gutjahr (sgitaize)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+This license covers the source code only (HTML, CSS, JavaScript, PHP, Python,
+shell scripts). The data files in public/data/ and sources/ are NOT covered by
+the MIT license – see "Lizenzen" in README.md:
+
+- Data derived from OpenStreetMap (places, municipalities, districts and
+  everything combined with them, e.g. public/data/places.json):
+  © OpenStreetMap contributors, Open Database License (ODbL) 1.0,
+  https://opendatacommons.org/licenses/odbl/1-0/
+- Historical borders from OpenHistoricalMap: CC0 1.0
+- Facts from Wikidata: CC0 1.0
+- Images are not part of this repository; they are loaded from Wikimedia
+  Commons under the license named next to each image.
+- Third-party components in public/assets/: Leaflet (BSD-2-Clause, see
+  public/assets/vendor/leaflet/LICENSE); fonts Barlow Condensed, IBM Plex Mono
+  and Source Serif 4 (SIL Open Font License 1.1).

@@ -406,11 +406,23 @@ function chartSvg(series, state, width) {
   </svg>`;
 }
 
+// Link to the license text (CC, FAL, Datenlizenz Deutschland); other licenses are explained on the Commons page
+function licenseUrl(name) {
+  const cc = name.match(/^CC (BY(?:-SA)?) (\d\.\d)(?: ([a-z]{2}))?$/i);
+  if (cc) return `https://creativecommons.org/licenses/${cc[1].toLowerCase()}/${cc[2]}/${cc[3] ? cc[3].toLowerCase() + '/' : ''}deed.de`;
+  if (/^CC0/.test(name)) return 'https://creativecommons.org/publicdomain/zero/1.0/deed.de';
+  if (name === 'FAL') return 'https://artlibre.org/licence/lal/de1-3/';
+  if (name === 'dl-de/by-2-0') return 'https://www.govdata.de/dl-de/by-2-0';
+  return '';
+}
+
 function credit(img, kind) {
   const [thumb, page, artist, license] = img;
   const who = artist ? esc(artist) : 'unbekannt';
+  const url = license ? licenseUrl(license) : '';
+  const lic = license ? ', ' + (url ? `<a href="${url}" target="_blank" rel="noopener license">${esc(license)}</a>` : esc(license)) : '';
   return `<img src="${esc(thumb)}" alt="${kind}" loading="lazy" referrerpolicy="no-referrer" />
-    <figcaption>${kind}: ${who}${license ? ', ' + esc(license) : ''} · <a href="${esc(page)}" target="_blank" rel="noopener">Wikimedia Commons</a></figcaption>`;
+    <figcaption>${kind}: ${who}${lic} · <a href="${esc(page)}" target="_blank" rel="noopener">Wikimedia Commons</a></figcaption>`;
 }
 
 async function renderFacts(it, el) {

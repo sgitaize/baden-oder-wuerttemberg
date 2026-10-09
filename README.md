@@ -125,9 +125,20 @@ php -S 127.0.0.1:8099 -t public     # PHP ≥ 8.1 mit pdo_sqlite
 - Schriften (Barlow Condensed, IBM Plex Mono, Source Serif 4; SIL OFL) und Leaflet (BSD-2) liegen unter `public/assets/` – keine Anfragen an Google Fonts oder CDNs. Externe Abrufe gibt es nur noch für OSM-Kartenkacheln und Wikimedia-Bilder; beides steht in der [Datenschutzerklärung](public/datenschutz.html).
 - Moderation unter `/api/admin.php`; das Token steht in `api/config.php` (siehe `config.sample.php`, nicht im Repo).
 
-## Lizenzhinweise
+## Lizenzen
 
-Kartendaten und Ortsdaten © OpenStreetMap-Mitwirkende, verfügbar unter der [Open Database License](https://www.openstreetmap.org/copyright). Historische Grenzen von OpenHistoricalMap (CC0). Steckbrief-Daten von Wikidata (CC0); Wappen und Fotos von Wikimedia Commons unter der jeweils am Bild genannten Lizenz. Gemeindeverzeichnisse 1945 nach [territorial.de](https://territorial.de/) (Rolf Jehke).
+| Was | Lizenz |
+|-----|--------|
+| Quellcode (HTML, CSS, JavaScript, PHP, Python, Skripte) | [MIT](LICENSE) |
+| Aus OpenStreetMap abgeleitete Daten (`public/data/places.json`, `sources/osm_*`, alles damit Kombinierte) | © OpenStreetMap-Mitwirkende, [Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/) |
+| Historische Grenzen (`sources/historical_states_1939.geojson`, `public/data/borders.json`) | OpenHistoricalMap, CC0 |
+| Steckbrief-Daten (`sources/wikidata_facts.json`, `public/data/facts.json`) | Wikidata, CC0 |
+| Gemeindeverzeichnisse 1945 (`sources/gemeindeverzeichnis_1945.csv`) | Fakten nach [territorial.de](https://territorial.de/) (Rolf Jehke), Quelle je Zeile verlinkt |
+| Wappen und Fotos | nicht im Repo; von Wikimedia Commons geladen, Urheber*in und Lizenz (verlinkt) stehen am Bild |
+| Leaflet | BSD-2-Clause (`public/assets/vendor/leaflet/LICENSE`) |
+| Schriften Barlow Condensed, IBM Plex Mono, Source Serif 4 | SIL Open Font License 1.1 |
+
+Gemeindewappen sind als amtliche Werke gemeinfrei (§ 5 UrhG). Die Seite zeigt sie nur beschreibend; als Logo oder in Werbung dürfen sie ohne Genehmigung der Gemeinde nicht verwendet werden.
 
 ---
 Ein Projekt von [Simon Gutjahr](https://simongutjahr.de) · [Impressum](https://simongutjahr.de/impressum/)
