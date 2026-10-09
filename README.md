@@ -1,6 +1,6 @@
 # Baden oder Württemberg?
 
-**https://baden-oder-württemberg.de** – ein Ortsverzeichnis für das heutige Baden-Württemberg: Lag ein Ort vor 1945 in **Baden**, in **Württemberg**, in den preußischen **Hohenzollerischen Landen** – oder, im Fall von Bad Wimpfen, sogar in **Hessen**?
+**[baden-oder-württemberg.de](https://baden-oder-württemberg.de)** – ein Ortsverzeichnis für das heutige Baden-Württemberg: Lag ein Ort vor 1945 in **Baden**, in **Württemberg**, in den preußischen **Hohenzollerischen Landen** – oder, im Fall von Bad Wimpfen, sogar in **Hessen**?
 
 - 14.558 Einträge – Städte, Dörfer, Stadt- und Ortsteile, Weiler und Einzelhöfe sowie alle 1.101 Gemeinden –, jeweils mit heutiger Gemeinde und heutigem Kreis
 - Kreis von 1945 als Beleg (verlinkt), Hinweis bei Orten in Grenzlage
