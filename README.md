@@ -5,6 +5,7 @@
 - 9.145 Städte, Dörfer, Stadt- und Ortsteile sowie Weiler, jeweils mit heutiger Gemeinde und heutigem Kreis
 - Kreis von 1945 als Beleg (verlinkt), Hinweis bei Orten in Grenzlage
 - 49 heutige Gemeinden mit Gebiet aus mehreren alten Ländern (z. B. Villingen-Schwenningen, Schramberg, Tuttlingen), aufgeschlüsselt nach Ortsteilen
+- **Steckbrief** zu jedem Ort: Einwohnerentwicklung als Diagramm, Fläche, Höhe, Einwohnerdichte, Ersterwähnung, Wappen und Foto, Abstand zur alten Grenze und nächster Ort „auf der anderen Seite“
 - Karte mit den schraffierten Ländergrenzen von 1939
 - Rückmeldungen zur Zuordnung und eine öffentliche **Ortschronik** zu jedem Ort – ohne Benutzerkonto, mit datensparsamem Captcha
 
@@ -14,10 +15,11 @@
 public/            Website (= Docroot)
   index.html       Seite
   assets/          app.js, style.css, favicon.svg
-  data/            vom Build erzeugt: places.json, borders.json, stats.json
+  data/            vom Build erzeugt: places.json, borders.json, facts.json, stats.json
   api/             PHP + SQLite: api.php (öffentlich), admin.php (Moderation), lib.php
 sources/           aufbereitete Rohdaten (siehe unten), versioniert
-build/             Datenaufbereitung: fetch.sh, fetch_territorial.py, build.py, validate.py, export_sources.py
+build/             Datenaufbereitung: fetch.sh, fetch_territorial.py, fetch_wikidata.py, fetch_commons.py,
+                   build.py, validate.py, export_sources.py
 deploy/deploy.sh   Upload per FTPS – nur der committete und gepushte Stand
 ```
 
@@ -32,6 +34,8 @@ Alle Rohdaten wurden am **2026-10-08** abgerufen. Die Dateien in [`sources/`](so
 | `osm_gemeinden_bw.geojson` | 1.104 heutige Gemeinden inkl. Stadtkreise (vereinfacht auf ~10 m, mit AGS) | OpenStreetMap | ODbL |
 | `osm_kreise_bw.geojson` | 44 heutige Land- und Stadtkreise (vereinfacht auf ~10 m) | OpenStreetMap | ODbL |
 | `gemeindeverzeichnis_1945.csv` | 3.355 Gemeinden mit Land und Kreis zum 1. 1. 1945 (`land, kreis, gemeinde, quelle`) | territorial.de | Fakten, Quelle je Zeile verlinkt |
+| `wikidata_facts.json` | 3.677 Wikidata-Objekte: Einwohnerzeitreihen (Jahr, Wert, Beleg), Fläche, Höhe, Ersterwähnung, Gründung/Auflösung, Wappen, Foto, Wikipedia-Artikel | Wikidata | CC0 |
+| `commons_images.json` | 4.318 Bilder: Vorschau-URL, Urheber*in, Lizenz | Wikimedia Commons | je Bild angegeben |
 | `validation_report.json` | Ergebnis der Gegenprobe: übereinstimmend / widersprüchlich / nicht zugeordnet | eigene Auswertung | – |
 
 ### 1. Historische Ländergrenzen – OpenHistoricalMap
@@ -64,12 +68,33 @@ Rolf Jehkes Projekt [Territoriale Veränderungen in Deutschland 1874–1945](htt
 
 Zwei Korrekturen sind im Skript dokumentiert: Die Seite des Landkreises Lahr trägt im Titel versehentlich „Landkreis Bruchsal“, und aus Hessen wird nur Wimpfen übernommen.
 
+### 4. Steckbriefe – Wikidata und Wikimedia Commons
+
+In OpenStreetMap sind 3.318 Ortspunkte sowie alle Gemeinden und Kreise per `wikidata`-Tag mit Wikidata verknüpft. `fetch_wikidata.py` lädt diese 3.677 Objekte über die API `wbgetentities` (50 pro Abruf) und liest aus:
+
+| Eigenschaft | Wikidata | Abdeckung |
+|-------------|----------|-----------|
+| Einwohnerzahl mit Stichtag (`P585`) und Beleg (`P248`) | P1082 | 1.316 Objekte, fast alle Gemeinden 1961–2025 |
+| Fläche | P2046 | 1.741 |
+| Höhe über NN | P2044 | 2.195 |
+| Ersterwähnung | P1249 | 206 |
+| Gründung / Auflösung (Eingemeindung) | P571 / P576 | 85 / 7 |
+| Wappen / Foto | P94 / P18 | 2.217 / 2.137 |
+| Artikel in der deutschen Wikipedia | Sitelink `dewiki` | 3.219 |
+
+Die Einwohnerzahlen der Gemeinden stammen dort überwiegend aus den Gemeindeverzeichnissen des Statistischen Landesamts Baden-Württemberg (1975, 2022–2025) und den Volkszählungen. Für das Diagramm werden alle Werte vor 1960, die Volkszählungsjahre, jedes fünfte Jahr und der neueste Wert verwendet. Hat ein Ortsteil keine eigenen Zahlen, zeigt die Seite die Werte der Gemeinde und schreibt das dazu.
+
+`fetch_commons.py` holt für jedes Wappen und Foto über die Commons-API (`imageinfo`, `extmetadata`) eine Vorschau mit 480 px Breite, Urheber*in und Lizenz. Beides steht auf der Website unter dem Bild.
+
+Werte vor 1945 sind in Wikidata nur für rund 70 Orte erfasst. Die amtliche Reihe „Bevölkerungsentwicklung seit 1871“ des Statistischen Landesamts war im neuen Statistikportal (`daten.statistik-bw.de/genesisonline`) nicht frei abrufbar – eine mögliche Erweiterung.
+
 ## Methode
 
 1. **Zuordnung:** Jeder Ortspunkt wird per Punkt-in-Polygon dem historischen Land zugeordnet, in dem er liegt (alle 9.145 Orte liegen in genau einem Land).
 2. **Heutige Gemeinde:** ebenfalls per Punkt-in-Polygon. Für jede Gemeinde wird zusätzlich berechnet, welcher Flächenanteil in welchem alten Land liegt; Anteile unter 2 % gelten als Digitalisierungsrauschen.
-3. **Grenzlage:** Liegt ein Ort näher als 250 m an einer alten Landesgrenze, wird das angezeigt.
-4. **Gegenprobe:** Die Gemeindenamen von 1945 werden normalisiert (ß → ss, „Bad“, „a. N.“, „, Stadt“ usw. entfernt) und mit den Orten abgeglichen. Bei mehrdeutigen Namen gewinnt der Ort, der am nächsten am Schwerpunkt der übrigen Gemeinden desselben Kreises liegt. Ergebnis: **3.111 von 3.119** eindeutig vergleichbaren Gemeinden (99,7 %) stimmen mit der Kartenzuordnung überein; die 8 Abweichungen sind überwiegend Namensdoppelungen (z. B. zwei „Bittelbronn“) und werden auf der Website markiert. 236 Gemeinden von 1945 ließen sich keinem heutigen Ortspunkt zuordnen (Namensänderungen, Zusammenlegungen) – Details in `validation_report.json`.
+3. **Grenzlage:** Liegt ein Ort näher als 250 m an der Grenze zwischen zwei alten Ländern, wird das angezeigt (78 Orte). Die Außengrenze zu Bayern, Frankreich und der Schweiz zählt nicht.
+4. **Abstand und Nachbarort:** Für jeden Ort wird der Abstand zur nächsten inneren Grenze berechnet; der nächstgelegene Ort im jeweils anderen Land wird im Browser ermittelt.
+5. **Gegenprobe:** Die Gemeindenamen von 1945 werden normalisiert (ß → ss, „Bad“, „a. N.“, „, Stadt“ usw. entfernt) und mit den Orten abgeglichen. Bei mehrdeutigen Namen gewinnt der Ort, der am nächsten am Schwerpunkt der übrigen Gemeinden desselben Kreises liegt. Ergebnis: **3.111 von 3.119** eindeutig vergleichbaren Gemeinden (99,7 %) stimmen mit der Kartenzuordnung überein; die 8 Abweichungen sind überwiegend Namensdoppelungen (z. B. zwei „Bittelbronn“) und werden auf der Website markiert. 236 Gemeinden von 1945 ließen sich keinem heutigen Ortspunkt zuordnen (Namensänderungen, Zusammenlegungen) – Details in `validation_report.json`.
 
 Stichproben bekannter Grenzfälle: Villingen badisch, Schwenningen württembergisch, Tennenbronn (heute Schramberg) badisch, Möhringen (heute Tuttlingen) badisch, Bad Herrenalb und Maulbronn württembergisch, Kürnbach badisch, Sigmaringen und Hechingen hohenzollerisch, Bad Wimpfen hessisch – alle korrekt.
 
@@ -80,7 +105,7 @@ Stichproben bekannter Grenzfälle: Villingen badisch, Schwenningen württembergi
 ```bash
 cd build
 uv venv .venv && uv pip install --python .venv/bin/python shapely
-./fetch.sh                          # lädt alles nach build/cache/ (~60 MB, nicht im Repo)
+./fetch.sh                          # lädt alles nach build/cache/ (~65 MB, nicht im Repo; ca. 10 Minuten)
 .venv/bin/python build.py           # erzeugt public/data/*.json und gibt die Statistik aus
 .venv/bin/python validate.py        # zeigt Widersprüche und nicht zugeordnete Gemeinden
 .venv/bin/python export_sources.py  # schreibt sources/
@@ -101,7 +126,7 @@ php -S 127.0.0.1:8099 -t public     # PHP ≥ 8.1 mit pdo_sqlite
 
 ## Lizenzhinweise
 
-Kartendaten und Ortsdaten © OpenStreetMap-Mitwirkende, verfügbar unter der [Open Database License](https://www.openstreetmap.org/copyright). Historische Grenzen von OpenHistoricalMap (CC0). Gemeindeverzeichnisse 1945 nach [territorial.de](https://territorial.de/) (Rolf Jehke).
+Kartendaten und Ortsdaten © OpenStreetMap-Mitwirkende, verfügbar unter der [Open Database License](https://www.openstreetmap.org/copyright). Historische Grenzen von OpenHistoricalMap (CC0). Steckbrief-Daten von Wikidata (CC0); Wappen und Fotos von Wikimedia Commons unter der jeweils am Bild genannten Lizenz. Gemeindeverzeichnisse 1945 nach [territorial.de](https://territorial.de/) (Rolf Jehke).
 
 ---
 Ein Projekt von [Simon Gutjahr](https://simongutjahr.de) · [Impressum](https://simongutjahr.de/impressum/)

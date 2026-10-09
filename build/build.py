@@ -10,6 +10,7 @@ Outputs (../data/):
   places.json   every place with its historical state
   borders.json  simplified historical borders as GeoJSON for the map
   stats.json    counts for the website
+  facts.json    population series, area, elevation, coat of arms, photo … per Wikidata item (optional)
 """
 import json
 import re
@@ -81,11 +82,60 @@ def admin_areas(name):
     return areas
 
 
+CENSUS = {1871, 1880, 1890, 1900, 1910, 1925, 1933, 1939, 1946, 1950, 1956, 1961, 1970, 1987, 2011, 2022}
+
+
+def year_of(date):
+    m = re.match(r"-?(\d{1,4})", date or "")
+    return int(m.group(1)) if m else None
+
+
+def build_facts(qids):
+    """Compact facts per Wikidata item from cache/wikidata.json + cache/commons.json."""
+    if not (CACHE / "wikidata.json").exists():
+        return {}
+    wd = json.loads((CACHE / "wikidata.json").read_text())
+    commons = json.loads((CACHE / "commons.json").read_text()) if (CACHE / "commons.json").exists() else {}
+    sources = json.loads((CACHE / "wikidata_sources.json").read_text()) if (CACHE / "wikidata_sources.json").exists() else {}
+
+    def img(name):
+        c = commons.get(name)
+        return [c["thumb"], c["page"], c["artist"], c["license"]] if c and c["thumb"] else None
+
+    facts = {}
+    for q in qids:
+        d = wd.get(q)
+        if not d:
+            continue
+        by_year = {}
+        for y, v, src in sorted(d["pop"], key=lambda r: (r[0], r[2] == "")):
+            by_year.setdefault(y, (v, src))  # prefer the value with a cited source
+        years = sorted(by_year)
+        keep = [y for y in years if y < 1960 or y in CENSUS or y % 5 == 0 or y == years[-1]]
+        srcs = {sources.get(by_year[y][1], "") for y in keep} - {""}
+        f = {
+            "p": [[y, by_year[y][0]] for y in keep],
+            "ps": sorted(srcs)[:3],
+            "a": d.get("area"), "e": d.get("elev"),
+            "f": year_of(d.get("first")) or None,
+            "i": year_of(d.get("inception")) or None,
+            "d": year_of(d.get("dissolved")) or None,
+            "c": img(d.get("coa")), "img": img(d.get("image")),
+            "w": d.get("article"),
+        }
+        facts[q] = {k: v for k, v in f.items() if v}
+    return facts
+
+
 def main():
     states = {}
     for rel in load("ohm_states.json"):
         states[STATES[rel["id"]]] = relation_polygon(rel)
-    state_lines_m = {k: to_metric(v.boundary) for k, v in states.items()}
+    # Only internal borders between the old states count (not the outer border to Bavaria, France, Switzerland)
+    state_lines_m = {}
+    for k, v in states.items():
+        others = unary_union([o for j, o in states.items() if j != k]).buffer(0.003)
+        state_lines_m[k] = to_metric(v.boundary.intersection(others))
 
     kreise = admin_areas("osm_admin6.json")
     gemeinden = admin_areas("osm_admin8.json")
@@ -114,12 +164,14 @@ def main():
         gem_out.append({
             "name": tags.get("name"),
             "ags": tags.get("de:amtlicher_gemeindeschluessel", ""),
+            "qid": tags.get("wikidata", "").split(";")[0],
             "kreis": kreis.get("name") if kreis else "",
             "shares": dict(sorted(shares.items(), key=lambda kv: -kv[1])),
         })
     gem_index = {g["ags"] + g["name"]: i for i, g in enumerate(gem_out)}
 
     places = []
+    extra = {}  # osm id -> (distance to old border in km, wikidata qid)
     unassigned = 0
     for el in load("osm_places.json"):
         t = el["tags"]
@@ -137,6 +189,7 @@ def main():
         dist = min(line.distance(ptm) for line in state_lines_m.values())
         gem = locate(gemeinden, gem_tree, pt)
         gi = gem_index.get(gem.get("de:amtlicher_gemeindeschluessel", "") + gem.get("name")) if gem else None
+        extra[el["id"]] = (round(dist / 1000, 1), t.get("wikidata", "").split(";")[0])
         places.append([
             t["name"],
             PLACE_TYPES[t["place"]],
@@ -168,6 +221,7 @@ def main():
             p.append(terr_index[conflict_ids[osm]])
         else:
             p.append(-1)
+        p.extend(extra[osm])
     (ROOT / "cache" / "validation_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
 
     # Borders for the map: clip to today's BW, simplify (~150 m)
@@ -188,7 +242,7 @@ def main():
 
     OUT.mkdir(exist_ok=True)
     (OUT / "places.json").write_text(json.dumps(
-        {"fields": ["name", "type", "lat", "lon", "state", "gemeinde", "flag", "osm", "kreis1945"],
+        {"fields": ["name", "type", "lat", "lon", "state", "gemeinde", "flag", "osm", "kreis1945", "borderKm", "qid"],
          "gemeinden": gem_out, "kreise1945": sources, "places": places},
         ensure_ascii=False, separators=(",", ":")))
     (OUT / "borders.json").write_text(json.dumps(
@@ -205,6 +259,10 @@ def main():
         "sourcesDisagree": sum(1 for p in places if p[6] == 2),
         "validation": {"agree": report["ok"], "disagree": len(report["conflicts"]), "compared": report["ok"] + len(report["conflicts"])},
     }
+    qids = {p[10] for p in places if p[10]} | {g["qid"] for g in gem_out if g["qid"]}
+    facts = build_facts(sorted(qids))
+    (OUT / "facts.json").write_text(json.dumps(facts, ensure_ascii=False, separators=(",", ":")))
+    stats["withFacts"] = len(facts)
     (OUT / "stats.json").write_text(json.dumps(stats, ensure_ascii=False, indent=1))
     print(json.dumps(stats, ensure_ascii=False), f"unassigned={unassigned}")
     print("gemischt:", ", ".join(sorted(f"{g['name']} {g['shares']}" for g in mixed)))

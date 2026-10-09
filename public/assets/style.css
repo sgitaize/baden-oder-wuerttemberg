@@ -139,6 +139,33 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
 .parts td span { color: var(--ink-2); font-family: var(--mono); font-size: .8rem; }
 .parts a { color: var(--ink); text-decoration-color: var(--rule); }
 
+/* ---------- Steckbrief ---------- */
+.facts { margin: .4rem 0 1.6rem; }
+.facts__title { font-family: var(--cond); text-transform: uppercase; letter-spacing: .06em; font-size: 1.4rem; border-bottom: 1px solid var(--ink); padding-bottom: .3rem; margin-bottom: 1rem; }
+.facts__scope { color: var(--ink-2); font-size: 1rem; letter-spacing: .04em; }
+.facts__grid { display: grid; grid-template-columns: minmax(0, 720px) minmax(0, 280px); gap: 2rem; align-items: start; }
+.facts__ledger { margin-top: .4rem; }
+.chart { margin: 0 0 1.2rem; }
+.chart__cap { font-family: var(--cond); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); font-size: .95rem; margin-bottom: .3rem; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .ax { stroke: var(--rule); stroke-width: 1; }
+.chart .grid { stroke: var(--rule-2); stroke-width: 1; }
+.chart .line { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.chart .area { fill: var(--c); opacity: .18; }
+.chart .dot { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.chart .ev { stroke: var(--c); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--ink-2); }
+.chart text.lbl { font-family: var(--cond); font-size: 13px; fill: var(--ink); letter-spacing: .03em; }
+.chart text.val { fill: var(--ink); font-size: 12px; }
+.chart__note { margin: .3rem 0 0; color: var(--ink-2); font-size: .85rem; }
+.facts__media { display: grid; gap: 1rem; }
+.facts__media figure { margin: 0; }
+.facts__media img { display: block; max-width: 100%; height: auto; border: 1px solid var(--rule); background: var(--field); }
+.facts__media .coa img { max-height: 130px; width: auto; border: 0; background: none; }
+.facts__media figcaption { font-size: .75rem; color: var(--ink-2); margin-top: .3rem; line-height: 1.35; overflow-wrap: anywhere; }
+.facts__media figcaption a { color: var(--ink-2); }
+.facts__wiki { font-size: .95rem; margin: 0; }
+
 .notes { list-style: none; counter-reset: n; margin: 0 0 1.2rem; padding: 0; max-width: 720px; font-size: .95rem; color: var(--ink-2); }
 .notes li { counter-increment: n; position: relative; padding-left: 1.6rem; margin-bottom: .5rem; }
 .notes li::before { content: counter(n) ")"; position: absolute; left: 0; font-family: var(--mono); font-size: .85em; color: var(--ink); }
@@ -263,4 +290,5 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
   .chrono dt { font-size: 1.4rem; }
   .entry { grid-template-columns: 1fr; gap: .2rem; }
   .parts th { width: auto; }
+  .facts__grid { grid-template-columns: 1fr; gap: 1rem; }
 }

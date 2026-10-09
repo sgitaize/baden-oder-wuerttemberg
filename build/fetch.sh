@@ -27,3 +27,6 @@ for lvl in 6 8; do
 done
 # Gemeindeverzeichnisse 1945 (territorial.de)
 python3 fetch_territorial.py
+# Steckbriefe: Wikidata (Einwohner, Fläche, Höhe, Wappen …) und Bildnachweise von Wikimedia Commons
+python3 fetch_wikidata.py
+python3 fetch_commons.py

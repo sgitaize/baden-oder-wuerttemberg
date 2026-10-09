@@ -6,6 +6,8 @@
   sources/osm_kreise_bw.geojson            today's Land- and Stadtkreise, simplified ~10 m (ODbL)
   sources/gemeindeverzeichnis_1945.csv     municipality lists per Kreis, 1. 1. 1945 (territorial.de)
   sources/validation_report.json           result of the cross-check (agree / disagree / unmatched)
+  sources/wikidata_facts.json              population, area, elevation, … per Wikidata item (CC0)
+  sources/commons_images.json              author and license of every coat of arms / photo
 """
 import csv
 import json
@@ -74,6 +76,8 @@ def main():
                 w.writerow([STATE_NAMES[k["land"]], kreis, g, k["url"]])
 
     shutil.copy(CACHE / "validation_report.json", OUT / "validation_report.json")
+    shutil.copy(CACHE / "wikidata.json", OUT / "wikidata_facts.json")
+    shutil.copy(CACHE / "commons.json", OUT / "commons_images.json")
     for p in sorted(OUT.iterdir()):
         print(f"{p.name:40} {p.stat().st_size / 1e6:6.2f} MB")
 

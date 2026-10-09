@@ -98,6 +98,7 @@
       <ol class="biblio">
         <li><b>Historische Grenzen.</b> <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>, Relationen Republik Baden (1918–1945), Volksstaat Württemberg (1918–1945), Hohenzollerische Lande (1928–1945) und Volksstaat Hessen (1932–1945). Lizenz CC0.</li>
         <li><b>Orte und Gemeinden von heute.</b> <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, © OpenStreetMap-Mitwirkende, Lizenz ODbL. Jeder Ort wird über seine Koordinate dem alten Land zugeordnet.</li>
+        <li><b>Steckbriefe.</b> Einwohnerzahlen, Fläche, Höhe, Ersterwähnung und Wikipedia-Artikel aus <a href="https://www.wikidata.org/">Wikidata</a> (CC0) – die Einwohnerzahlen dort stammen überwiegend aus den Gemeindeverzeichnissen des Statistischen Landesamts. Wappen und Fotos von <a href="https://commons.wikimedia.org/">Wikimedia Commons</a>, Urheber*in und Lizenz jeweils am Bild.</li>
         <li><b>Gegenprobe.</b> Gemeindeverzeichnisse aller Land- und Stadtkreise, Stand 1.&nbsp;1.&nbsp;1945, aus <a href="https://territorial.de/">territorial.de</a> von Rolf Jehke. <span id="validationText"></span></li>
       </ol>
       <p class="sec__note">Liegt ein Ort näher als 250&nbsp;m an der alten Grenze, steht ein Hinweis dabei. Die Grenzlinien sind digitalisierte Rekonstruktionen; kleine Gebietstausche einzelner Gemarkungen können fehlen. Wer einen Fehler findet, meldet ihn direkt beim Ort – Rückmeldungen fließen in die nächste Ausgabe ein.</p>
@@ -109,7 +110,7 @@
     <p class="colophon__small">Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende · historische Grenzen <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a></p>
     <div class="privacy" id="datenschutz" hidden>
       <h2>Datenschutz in Kürze</h2>
-      <p>Diese Seite setzt keine Cookies und kein Tracking. Für Karte und Schriften werden Inhalte von OpenStreetMap (Kartenkacheln), unpkg.com (Kartenbibliothek) und Google Fonts geladen; dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
+      <p>Diese Seite setzt keine Cookies und kein Tracking. Für Karte, Bilder und Schriften werden Inhalte von OpenStreetMap (Kartenkacheln), Wikimedia Commons (Wappen und Fotos), unpkg.com (Kartenbibliothek) und Google Fonts geladen; dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
       <p>Wenn du eine Rückmeldung oder einen Chronik-Eintrag abschickst, speichern wir den Text, den optionalen Namen und den Zeitpunkt. Deine IP-Adresse speichern wir nicht, nur einen täglich wechselnden, nicht umkehrbaren Hashwert zum Schutz vor Spam. Chronik-Einträge sind öffentlich; Rückmeldungen zur Zuordnung sieht nur der Betreiber. Löschung auf Anfrage über die Kontaktdaten im <a href="https://simongutjahr.de/impressum/">Impressum</a>.</p>
     </div>
   </footer>
@@ -122,6 +123,20 @@
     </header>
     <dl class="ledger"></dl>
     <div class="res__mixed"></div>
+    <section class="facts" hidden>
+      <h3 class="facts__title">Steckbrief</h3>
+      <div class="facts__grid">
+        <div class="facts__main">
+          <figure class="chart" hidden>
+            <figcaption class="chart__cap">Einwohnerentwicklung</figcaption>
+            <div class="chart__svg"></div>
+            <p class="chart__note"></p>
+          </figure>
+          <dl class="ledger facts__ledger"></dl>
+        </div>
+        <aside class="facts__media"></aside>
+      </div>
+    </section>
     <ol class="notes"></ol>
     <p class="res__actions">
       <button type="button" class="tl" data-act="share">Link teilen</button>

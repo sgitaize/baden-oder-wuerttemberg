@@ -8,11 +8,12 @@
   "H": 185
  },
  "mixedGemeinden": 49,
- "borderFlagged": 135,
+ "borderFlagged": 78,
  "sourcesDisagree": 1,
  "validation": {
   "agree": 3111,
   "disagree": 8,
   "compared": 3119
- }
+ },
+ "withFacts": 3439
 }

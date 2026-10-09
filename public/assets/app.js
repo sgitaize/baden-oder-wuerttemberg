@@ -54,7 +54,7 @@ async function loadData() {
     const item = {
       name: p[0], type: p[1], lat: p[2], lon: p[3], state: p[4],
       gem: p[5] >= 0 ? places.gemeinden[p[5]] : null, flag: p[6], osm: p[7],
-      k45: p[8] >= 0 ? places.kreise1945[p[8]] : null,
+      k45: p[8] >= 0 ? places.kreise1945[p[8]] : null, borderKm: p[9], qid: p[10],
     };
     item.key = norm(item.name);
     byOsm.set(String(item.osm), item);
@@ -238,6 +238,7 @@ function showResult(it) {
   if (it.state === 'X') notes.push(['', 'Wimpfen war bis 1945 hessische Exklave zwischen Baden und Württemberg. Nach dem Krieg kam es zu Württemberg-Baden, 1952 zu Baden-Württemberg.']);
   $('.notes', el).innerHTML = notes.map(([cls, t]) => `<li class="${cls}">${t}</li>`).join('');
 
+  renderFacts(it, el);
   $('.chronik__place', el).textContent = it.name;
   el.addEventListener('click', onResultClick);
   setupForm($('.form--feedback', el), 'feedback');
@@ -268,6 +269,123 @@ function onResultClick(e) {
   const f = $(act === 'feedback' ? '.form--feedback' : '.form--story', el);
   f.hidden = !f.hidden;
   if (!f.hidden) f.querySelector('textarea').focus();
+}
+
+/* ---------- Steckbrief ---------- */
+let factsPromise = null;
+const loadFacts = () => (factsPromise ||= fetch('data/facts.json').then((r) => r.json()).catch(() => ({})));
+const num = (n, d = 0) => n.toLocaleString('de-DE', { maximumFractionDigits: d });
+
+function nearestAcross(it) {
+  let best = null;
+  let bd = Infinity;
+  const k = Math.cos((it.lat * Math.PI) / 180);
+  for (const p of DB.items) {
+    if (p.state === it.state || p.type > 2) continue;
+    const d = (p.lat - it.lat) ** 2 + ((p.lon - it.lon) * k) ** 2;
+    if (d < bd) { bd = d; best = p; }
+  }
+  return best && { place: best, km: Math.sqrt(bd) * 111.2 };
+}
+
+function chartSvg(series, state, width) {
+  const W = Math.round(Math.min(720, Math.max(300, width || 640))), H = W < 480 ? 190 : 210, L = 52, R = 14, T = 18, B = 26;
+  const ys = series.map((p) => p[0]);
+  const x0 = Math.min(...ys), x1 = Math.max(...ys);
+  const vmax = Math.max(...series.map((p) => p[1])) * 1.12;
+  const x = (y) => L + ((y - x0) / Math.max(1, x1 - x0)) * (W - L - R);
+  const y = (v) => T + (1 - v / vmax) * (H - T - B);
+  const pts = series.map(([a, b]) => `${x(a).toFixed(1)},${y(b).toFixed(1)}`);
+  const step = vmax > 200000 ? 100000 : vmax > 40000 ? 10000 : vmax > 8000 ? 2000 : vmax > 2000 ? 500 : vmax > 400 ? 100 : 20;
+  let grid = '';
+  for (let v = 0; v <= vmax; v += step * Math.ceil(vmax / step / 4)) {
+    grid += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" /><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${num(v)}</text>`;
+  }
+  const span = x1 - x0;
+  const tick = W < 480 ? (span > 120 ? 100 : span > 50 ? 25 : 10) : (span > 120 ? 50 : span > 50 ? 20 : 10);
+  let ticks = '';
+  for (let t = Math.ceil(x0 / tick) * tick; t <= x1; t += tick) ticks += `<text x="${x(t)}" y="${H - 6}" text-anchor="middle">${t}</text>`;
+  const events = (W < 480 ? [[1952, 'BW'], [1975, 'Reform']] : [[1952, 'Baden-Württemberg'], [1975, 'Gemeindereform']])
+    .filter(([e]) => e > x0 && e < x1)
+    .map(([e, label]) => `<line class="ev" x1="${x(e)}" x2="${x(e)}" y1="${T - 6}" y2="${H - B}" /><text class="lbl" x="${x(e) + 4}" y="${T + 4}">${e} ${label}</text>`).join('');
+  const last = series[series.length - 1];
+  const first = series[0];
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Einwohner von ${first[0]} bis ${last[0]}" style="--c:var(${STATE[state].color})">
+    ${grid}<line class="ax" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" />${ticks}${events}
+    <polygon class="area" points="${x(first[0])},${H - B} ${pts.join(' ')} ${x(last[0])},${H - B}" />
+    <polyline class="line" points="${pts.join(' ')}" />
+    ${series.length <= 40 ? series.map(([a, b]) => `<circle class="dot" cx="${x(a)}" cy="${y(b)}" r="2.6"><title>${a}: ${num(b)}</title></circle>`).join('') : ''}
+    <text class="val" x="${x(last[0])}" y="${y(last[1]) - 8}" text-anchor="end">${num(last[1])}</text>
+  </svg>`;
+}
+
+function credit(img, kind) {
+  const [thumb, page, artist, license] = img;
+  const who = artist ? esc(artist) : 'unbekannt';
+  return `<img src="${esc(thumb)}" alt="${kind}" loading="lazy" referrerpolicy="no-referrer" />
+    <figcaption>${kind}: ${who}${license ? ', ' + esc(license) : ''} · <a href="${esc(page)}" target="_blank" rel="noopener">Wikimedia Commons</a></figcaption>`;
+}
+
+async function renderFacts(it, el) {
+  const all = await loadFacts();
+  if (current !== it) return;
+  const own = (it.qid && all[it.qid]) || {};
+  const gem = (it.gem && it.gem.qid && it.gem.qid !== it.qid && all[it.gem.qid]) || null;
+  const usesGem = !(own.p && own.p.length) && gem && gem.p;
+  const popOf = usesGem && it.gem.name !== it.name ? ` (Gemeinde ${esc(it.gem.name)})` : '';
+  const popSrc = usesGem ? gem : own;
+  const box = $('.facts', el);
+
+  const rows = [];
+  const pop = popSrc.p || [];
+  if (pop.length) {
+    const [ly, lv] = pop[pop.length - 1];
+    rows.push([`Einwohner${popOf}`, `${num(lv)} <span class="mono">(${ly})</span>`]);
+    const base = pop.find(([y]) => y >= 1961) || pop[0];
+    if (base && base[0] < ly - 10) {
+      const ch = ((lv - base[1]) / base[1]) * 100;
+      rows.push([`Veränderung seit ${base[0]}${popOf}`, `${ch >= 0 ? '+' : '−'}${num(Math.abs(ch), 0)}&nbsp;%`]);
+    }
+    const peak = pop.reduce((a, b) => (b[1] > a[1] ? b : a));
+    if (peak[0] !== ly && peak[1] > lv * 1.03) rows.push(['Höchststand', `${num(peak[1])} <span class="mono">(${peak[0]})</span>`]);
+    const area = popSrc.a;
+    if (area) rows.push([`Einwohner je km²${popOf}`, num(lv / area)]);
+  }
+  const area = own.a || (usesGem ? gem.a : null);
+  if (area) rows.push([`Fläche${own.a ? '' : popOf}`, `${num(area, 2)}&nbsp;km²`]);
+  if (own.e || (gem && gem.e)) rows.push(['Höhe', `${num(own.e || gem.e)}&nbsp;m ü.&nbsp;NN`]);
+  if (own.f) rows.push(['Erste Erwähnung', `${own.f}`]);
+  if (own.d) rows.push(['Eingemeindet', `${own.d}${it.gem && it.gem.name !== it.name ? ` nach ${esc(it.gem.name)}` : ''}`]);
+  if (it.borderKm != null) rows.push(['Abstand zur alten Grenze', `${num(it.borderKm, 1)}&nbsp;km`]);
+  const across = nearestAcross(it);
+  if (across) {
+    const p = across.place;
+    rows.push([`Nächster ${p.state === 'W' ? 'württembergischer' : p.state === 'B' ? 'badischer' : p.state === 'H' ? 'hohenzollerischer' : 'hessischer'} Ort`,
+      `<a href="#ort/${p.osm}-${slug(p.name)}">${esc(p.name)}</a> <span class="mono">${num(across.km, 1)} km</span>`]);
+  }
+
+  $('.facts__ledger', box).innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+
+  box.hidden = false; // measure widths below
+  const chart = $('.chart', box);
+  if (pop.length >= 3) {
+    chart.hidden = false;
+    $('.chart__cap', box).innerHTML = `Einwohnerentwicklung${popOf}`;
+    $('.chart__svg', box).innerHTML = chartSvg(pop, it.state, $('.facts__main', box).clientWidth);
+    const src = popSrc.ps && popSrc.ps.length ? `Quelle: Wikidata, u. a. nach ${popSrc.ps.map(esc).join(', ')}.` : 'Quelle: Wikidata.';
+    $('.chart__note', box).textContent = `${src} Sprünge entstehen meist durch Eingemeindungen.`;
+  }
+
+  const media = [];
+  const coa = own.c || (gem && gem.c);
+  const photo = own.img || (gem && !own.c && gem.img);
+  if (coa) media.push(`<figure class="coa">${credit(coa, 'Wappen')}</figure>`);
+  if (photo) media.push(`<figure>${credit(photo, 'Foto')}</figure>`);
+  const wiki = own.w || (gem && gem.w);
+  if (wiki) media.push(`<p class="facts__wiki"><a href="https://de.wikipedia.org/wiki/${encodeURIComponent(wiki.replace(/ /g, '_'))}" target="_blank" rel="noopener">${esc(wiki)} bei Wikipedia</a></p>`);
+  $('.facts__media', box).innerHTML = media.join('');
+
+  box.hidden = !(rows.length || media.length);
 }
 
 /* ---------- Ortschronik ---------- */
