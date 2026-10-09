@@ -36,7 +36,9 @@ STATES = {
     2894236: "H",  # Hohenzollerische Lande (Preußen) 1928–1945
     2746244: "X",  # Volksstaat Hessen 1932–1945 (Exklave Wimpfen)
 }
-PLACE_TYPES = {"city": 0, "town": 1, "village": 2, "suburb": 3, "quarter": 4, "hamlet": 5}
+PLACE_TYPES = {"city": 0, "town": 1, "village": 2, "suburb": 3, "quarter": 4, "hamlet": 5, "isolated_dwelling": 6}
+GEMEINDE_TYPE = 7          # synthetic entry for a Gemeinde without a place node of the same name
+SYNTHETIC_ID = 900_000_000_000  # + OSM relation id (beyond any node id)
 # Points closer than this to a historical border are flagged as uncertain
 BORDER_UNCERTAIN_M = 250
 # Share below which a historical state is ignored for a Gemeinde (sliver noise)
@@ -78,7 +80,7 @@ def admin_areas(name):
         if poly.is_empty:
             print(f"skip {rel['tags'].get('name')}: empty", file=sys.stderr)
             continue
-        areas.append((rel["tags"], poly))
+        areas.append((dict(rel["tags"], _rel=rel["id"]), poly))
     return areas
 
 
@@ -141,6 +143,8 @@ def main():
     gemeinden = admin_areas("osm_admin8.json")
     # Stadtkreise are only tagged admin_level 6 in OSM: treat them as Gemeinden too
     gemeinden += [(t, p) for t, p in kreise if "kreis" not in t.get("name", "").lower()]
+    # only real BW municipalities (drops e.g. Swiss Bettingen caught by the area query)
+    gemeinden = [(t, p) for t, p in gemeinden if t.get("de:amtlicher_gemeindeschluessel", "").startswith("08")]
     bw = unary_union([p for _, p in kreise])
 
     def locate(areas, tree, pt):
@@ -167,6 +171,9 @@ def main():
             "qid": tags.get("wikidata", "").split(";")[0],
             "kreis": kreis.get("name") if kreis else "",
             "shares": dict(sorted(shares.items(), key=lambda kv: -kv[1])),
+            "rel": tags["_rel"],
+            # gemeindefreie Gebiete (Gutsbezirk Münsingen, Rheininseln „Rheinau“) have AGS ...9xx
+            "free": tags.get("de:amtlicher_gemeindeschluessel", "")[5:6] == "9",
         })
     gem_index = {g["ags"] + g["name"]: i for i, g in enumerate(gem_out)}
 
@@ -200,6 +207,26 @@ def main():
             1 if dist < BORDER_UNCERTAIN_M else 0,
             el["id"],
         ])
+
+    # Split Gemeinden: inhabited places (not single farms) on both sides of the old border
+    place_states = {}
+    for p in places:
+        if p[5] >= 0 and p[1] <= 5:
+            place_states.setdefault(p[5], set()).add(p[4])
+    for i, g in enumerate(gem_out):
+        g["mixed"] = len(place_states.get(i, ())) > 1
+
+    # Gemeinden without a place node of the same name (Albstadt, Filderstadt …) get their own entry
+    named = {(p[0], p[5]) for p in places}
+    for i, (g, (tags, poly)) in enumerate(zip(gem_out, gemeinden)):
+        if (g["name"], i) in named or g["free"]:
+            continue
+        pt = poly.representative_point()
+        code = max(g["shares"], key=g["shares"].get)
+        dist = min(line.distance(to_metric(pt)) for line in state_lines_m.values())
+        osm_id = SYNTHETIC_ID + g["rel"]
+        extra[osm_id] = (round(dist / 1000, 1), g["qid"])
+        places.append([g["name"], GEMEINDE_TYPE, round(pt.y, 5), round(pt.x, 5), code, i, 0, osm_id])
     places.sort(key=lambda p: (p[1], p[0]))
 
     # Cross-check with the 1945 municipality lists (territorial.de) and attach them as source
@@ -249,10 +276,10 @@ def main():
         {"type": "FeatureCollection", "features": features}, separators=(",", ":")))
 
     by_state = Counter(p[4] for p in places)
-    mixed = [g for g in gem_out if len(g["shares"]) > 1]
+    mixed = [g for g in gem_out if g["mixed"]]
     stats = {
         "places": len(places),
-        "gemeinden": len(gem_out),
+        "gemeinden": sum(1 for g in gem_out if not g["free"]),
         "byState": dict(by_state),
         "mixedGemeinden": len(mixed),
         "borderFlagged": sum(1 for p in places if p[6] == 1),

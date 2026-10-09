@@ -6,7 +6,9 @@ const STATE = {
   H: { name: 'Hohenzollern', adj: 'hohenzollerisch', long: 'Hohenzollerische Lande (Preußen)', color: '--H', hatch: 0 },
   X: { name: 'Hessen', adj: 'hessisch', long: 'Volksstaat Hessen', color: '--X', hatch: 90 },
 };
-const TYPE = ['Stadt', 'Stadt', 'Dorf', 'Stadtteil', 'Ortsteil', 'Weiler'];
+const TYPE = ['Stadt', 'Stadt', 'Dorf', 'Stadtteil', 'Ortsteil', 'Weiler', 'Hof', 'Gemeinde'];
+const RANK = [0, 1, 2, 3, 4, 5, 6, 1]; // search order: Gemeinde entries rank like towns
+const SYNTHETIC_ID = 900000000000;
 const API = 'api/api.php';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -86,7 +88,7 @@ function search(q) {
     else if (it.key.includes(' ' + n)) score = 2;
     else if (n.length >= 3 && it.key.includes(n)) score = 3;
     else continue;
-    res.push([score * 10 + it.type, it]);
+    res.push([score * 10 + RANK[it.type], it]);
   }
   res.sort((a, b) => a[0] - b[0] || a[1].name.localeCompare(b[1].name, 'de'));
   return res.slice(0, 12).map((r) => r[1]);
@@ -195,13 +197,18 @@ function route() {
 window.addEventListener('hashchange', route);
 
 /* ---------- Result ---------- */
-const isMixedTown = (it) => it.gem && it.gem.name === it.name && it.type <= 1 && Object.keys(it.gem.shares).length > 1;
+const isMixedTown = (it) => it.gem && it.gem.mixed && it.gem.name === it.name && (it.type <= 1 || it.type === 7);
+// old states that have inhabited places in the Gemeinde, largest area share first
+function gemStates(gem) {
+  const have = new Set(DB.items.filter((p) => p.gem === gem && p.type <= 5).map((p) => p.state));
+  return Object.keys(gem.shares).filter((k) => have.has(k));
+}
 
 function headline(it) {
   if (isMixedTown(it)) {
-    const others = Object.keys(it.gem.shares).filter((k) => k !== it.state).map((k) => STATE[k].name).join(' und ');
+    const others = gemStates(it.gem).filter((k) => k !== it.state).map((k) => STATE[k].name).join(' und ');
     return {
-      big: Object.keys(it.gem.shares).map((k) => `<span class="mark" style="--c:var(${STATE[k].color})">${STATE[k].adj}</span>`).join(' &amp; '),
+      big: gemStates(it.gem).map((k) => `<span class="mark" style="--c:var(${STATE[k].color})">${STATE[k].adj}</span>`).join(' &amp; '),
       line: `${esc(it.name)} ist erst durch die Gemeindereform zusammengewachsen. Der Ortskern lag in ${STATE[it.state].name}, Teile der heutigen Stadt in ${others}.`,
     };
   }
@@ -217,10 +224,10 @@ function headline(it) {
 function mixedTable(it) {
   const groups = {};
   for (const p of DB.items) {
-    if (p.gem !== it.gem || p.type > 4 || p.name === it.gem.name) continue;
+    if (p.gem !== it.gem || p.type > 5 || p.name === it.gem.name) continue;
     (groups[p.state] ||= []).push(p);
   }
-  const rows = Object.keys(it.gem.shares).filter((k) => groups[k]).map((k) => {
+  const rows = gemStates(it.gem).filter((k) => groups[k]).map((k) => {
     const ps = groups[k].sort((a, b) => a.type - b.type || a.name.localeCompare(b.name, 'de'));
     const links = ps.slice(0, 30).map((p) => `<a href="#ort/${p.osm}-${slug(p.name)}">${esc(p.name)}</a>`).join(', ');
     return `<tr><th style="--c:var(${STATE[k].color})"><i></i>${STATE[k].name}</th><td>${links}${ps.length > 30 ? ' …' : ''} <span>${Math.round(it.gem.shares[k] * 100)}&nbsp;%&nbsp;der&nbsp;Fläche</span></td></tr>`;
@@ -239,7 +246,7 @@ function showResult(it) {
   document.body.classList.add('has-result');
   sign.dataset.state = it.state;
   signSub.textContent = isMixedTown(it)
-    ? Object.keys(it.gem.shares).map((k) => STATE[k].long.split(' (')[0]).join(' / ')
+    ? gemStates(it.gem).map((k) => STATE[k].long.split(' (')[0]).join(' / ')
     : STATE[it.state].long;
 
   const h = headline(it);
@@ -257,20 +264,25 @@ function showResult(it) {
   document.title = `${it.name}: ${STATE[it.state].adj} – Baden oder Württemberg?`;
 
   const rows = [
-    ['Land bis 1945', isMixedTown(it) ? Object.keys(it.gem.shares).map((k) => STATE[k].long).join(' / ') : STATE[it.state].long],
+    ['Land bis 1945', isMixedTown(it) ? gemStates(it.gem).map((k) => STATE[k].long).join(' / ') : STATE[it.state].long],
     ['Kreis 1945', it.k45 && it.k45[1] === it.state
       ? `<a href="${esc(it.k45[2])}" target="_blank" rel="noopener">${esc(it.k45[0])}</a>` : '<span title="Im Gemeindeverzeichnis 1945 nicht eindeutig gefunden">—</span>'],
     ['Gemeinde heute', it.gem ? esc(it.gem.name) : '—'],
     ['Kreis heute', it.gem && it.gem.kreis && it.gem.kreis !== it.gem.name ? esc(it.gem.kreis) : (it.gem ? 'kreisfrei' : '—')],
-    ['Lage', `<a class="mono" href="https://www.openstreetmap.org/node/${it.osm}" target="_blank" rel="noopener">${it.lat.toFixed(4)}° N, ${it.lon.toFixed(4)}° O</a>`],
+    ['Lage', `<a class="mono" href="https://www.openstreetmap.org/${it.osm >= SYNTHETIC_ID ? 'relation/' + (it.osm - SYNTHETIC_ID) : 'node/' + it.osm}" target="_blank" rel="noopener">${it.lat.toFixed(4)}° N, ${it.lon.toFixed(4)}° O</a>`],
   ];
   $('.ledger', el).innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
 
-  if (it.gem && Object.keys(it.gem.shares).length > 1) $('.res__mixed', el).innerHTML = mixedTable(it);
+  if (it.gem && it.gem.mixed) $('.res__mixed', el).innerHTML = mixedTable(it);
 
   const notes = [];
   if (it.flag === 1) notes.push(['warn', `<b>Grenzlage.</b> ${esc(it.name)} liegt weniger als 250&nbsp;m von der alten Landesgrenze entfernt. Die Zuordnung ist wahrscheinlich, aber nicht sicher – Ortskundige bitte prüfen.`]);
   if (it.flag === 2) notes.push(['warn', `<b>Quellen widersprechen sich.</b> Laut Gemeindeverzeichnis 1945 gehört ein Ort dieses Namens zum ${esc(it.k45[0])} (${STATE[it.k45[1]].name}). Vermutlich eine Namensdoppelung.`]);
+  if (it.gem && !it.gem.mixed && Object.keys(it.gem.shares).length > 1) {
+    const other = Object.entries(it.gem.shares).filter(([k]) => k !== it.state)
+      .map(([k, v]) => `${num(v * 100)}&nbsp;% in ${STATE[k].name}`).join(', ');
+    notes.push(['', `Von der heutigen Gemarkung ${esc(it.gem.name)} lagen ${other} – dort gab es aber keine Ortschaft, nur Wald oder Flur.`]);
+  }
   if (it.state === 'H') notes.push(['', 'Die Fürstentümer Hohenzollern-Hechingen und -Sigmaringen kamen 1850 an Preußen. Bis 1945 waren die Hohenzollerischen Lande ein preußischer Regierungsbezirk mit Sitz in Sigmaringen.']);
   if (it.state === 'X') notes.push(['', 'Wimpfen war bis 1945 hessische Exklave zwischen Baden und Württemberg. Nach dem Krieg kam es zu Württemberg-Baden, 1952 zu Baden-Württemberg.']);
   $('.notes', el).innerHTML = notes.map(([cls, t]) => `<li class="${cls}">${t}</li>`).join('');
@@ -621,7 +633,7 @@ function renderStats(s) {
   const rows = ['B', 'W', 'H', 'X'].map((k) => `<tr><td><i style="--c:var(${STATE[k].color})"></i>Orte in ${STATE[k].long}</td><td>${fmt(s.byState[k] || 0)}</td></tr>`);
   rows.push(`<tr class="sum"><td>Orte insgesamt</td><td>${fmt(s.places)}</td></tr>`);
   rows.push(`<tr><td>Heutige Gemeinden</td><td>${fmt(s.gemeinden)}</td></tr>`);
-  rows.push(`<tr><td>davon mit Gebiet aus mehreren alten Ländern</td><td>${fmt(s.mixedGemeinden)}</td></tr>`);
+  rows.push(`<tr><td>davon geteilt (Orte auf beiden Seiten der alten Grenze)</td><td>${fmt(s.mixedGemeinden)}</td></tr>`);
   $('#stats').innerHTML = `<caption>Statistik des Verzeichnisses</caption>${rows.join('')}`;
   const v = s.validation;
   $('#validationText').textContent = `Von ${fmt(v.compared)} eindeutig vergleichbaren Gemeinden stimmen ${fmt(v.agree)} (${(v.agree / v.compared * 100).toFixed(1).replace('.', ',')} %) mit der Karte überein; die übrigen sind überwiegend Namensdoppelungen. Wo es passt, ist der Kreis von 1945 als Beleg verlinkt.`;

@@ -2,9 +2,9 @@
 
 **https://baden-oder-württemberg.de** – ein Ortsverzeichnis für das heutige Baden-Württemberg: Lag ein Ort vor 1945 in **Baden**, in **Württemberg**, in den preußischen **Hohenzollerischen Landen** – oder, im Fall von Bad Wimpfen, sogar in **Hessen**?
 
-- 9.145 Städte, Dörfer, Stadt- und Ortsteile sowie Weiler, jeweils mit heutiger Gemeinde und heutigem Kreis
+- 14.558 Einträge – Städte, Dörfer, Stadt- und Ortsteile, Weiler und Einzelhöfe sowie alle 1.101 Gemeinden –, jeweils mit heutiger Gemeinde und heutigem Kreis
 - Kreis von 1945 als Beleg (verlinkt), Hinweis bei Orten in Grenzlage
-- 49 heutige Gemeinden mit Gebiet aus mehreren alten Ländern (z. B. Villingen-Schwenningen, Schramberg, Tuttlingen), aufgeschlüsselt nach Ortsteilen
+- 47 heutige Gemeinden mit Ortsteilen auf beiden Seiten der alten Grenze (z. B. Villingen-Schwenningen, Schramberg, Tuttlingen), aufgeschlüsselt nach Ortsteilen
 - **Steckbrief** zu jedem Ort: Einwohnerentwicklung als Diagramm, Fläche, Höhe, Einwohnerdichte, Ersterwähnung, Wappen und Foto, Abstand zur alten Grenze und nächster Ort „auf der anderen Seite“
 - Karte mit den schraffierten Ländergrenzen von 1939
 - Rückmeldungen zur Zuordnung und eine öffentliche **Ortschronik** zu jedem Ort – ohne Benutzerkonto, mit datensparsamem Captcha
@@ -31,7 +31,7 @@ Alle Rohdaten wurden am **2026-10-08** abgerufen. Die Dateien in [`sources/`](so
 |-------|--------|--------|--------|
 | `historical_states_1939.geojson` | Grenzen der vier Länder, volle Auflösung | OpenHistoricalMap | CC0 |
 | `osm_places_bw.csv` | 14.413 benannte Ortspunkte (`osm_node, name, place, lat, lon`) | OpenStreetMap | ODbL |
-| `osm_gemeinden_bw.geojson` | 1.104 heutige Gemeinden inkl. Stadtkreise (vereinfacht auf ~10 m, mit AGS) | OpenStreetMap | ODbL |
+| `osm_gemeinden_bw.geojson` | 1.101 heutige Gemeinden inkl. Stadtkreise und 2 gemeindefreie Gebiete (vereinfacht auf ~10 m, mit AGS) | OpenStreetMap | ODbL |
 | `osm_kreise_bw.geojson` | 44 heutige Land- und Stadtkreise (vereinfacht auf ~10 m) | OpenStreetMap | ODbL |
 | `gemeindeverzeichnis_1945.csv` | 3.355 Gemeinden mit Land und Kreis zum 1. 1. 1945 (`land, kreis, gemeinde, quelle`) | territorial.de | Fakten, Quelle je Zeile verlinkt |
 | `wikidata_facts.json` | 3.677 Wikidata-Objekte: Einwohnerzeitreihen (Jahr, Wert, Beleg), Fläche, Höhe, Ersterwähnung, Gründung/Auflösung, Wappen, Foto, Wikipedia-Artikel | Wikidata | CC0 |
@@ -60,7 +60,7 @@ Warum 1939? Das ist der letzte Stand vor Kriegsende, an dem sich die Länder kau
 - alle Nodes mit `place` = `city`, `town`, `village`, `suburb`, `quarter`, `hamlet`, `isolated_dwelling` und einem `name`
 - alle Relationen `boundary=administrative` mit `admin_level=6` (Kreise) und `admin_level=8` (Gemeinden), jeweils mit Geometrie
 
-Einzelhöfe (`isolated_dwelling`) liegen in den Rohdaten, werden auf der Website aber nicht gezeigt. Stadtkreise (Stuttgart, Karlsruhe, Mannheim …) sind in OSM nur als `admin_level=6` erfasst und werden deshalb zusätzlich als Gemeinde behandelt.
+Stadtkreise (Stuttgart, Karlsruhe, Mannheim …) sind in OSM nur als `admin_level=6` erfasst und werden deshalb zusätzlich als Gemeinde behandelt. Übernommen werden nur Gemeinden mit baden-württembergischem Gemeindeschlüssel (`08…`); die Abfrage erwischt sonst z. B. das Schweizer Bettingen. Die gemeindefreien Gebiete Gutsbezirk Münsingen und „Rheinau“ (Rheininseln, Schlüssel `…971`) zählen nicht als Gemeinde. 136 Gemeinden haben keinen gleichnamigen Ortspunkt, sondern nur Ortsteile (z. B. Albstadt, Filderstadt, Ammerbuch); sie bekommen einen eigenen Eintrag am Mittelpunkt ihrer Fläche.
 
 ### 3. Gegenprobe – Gemeindeverzeichnisse 1945 (territorial.de)
 
@@ -90,9 +90,9 @@ Werte vor 1945 sind in Wikidata nur für rund 70 Orte erfasst. Die amtliche Reih
 
 ## Methode
 
-1. **Zuordnung:** Jeder Ortspunkt wird per Punkt-in-Polygon dem historischen Land zugeordnet, in dem er liegt (alle 9.145 Orte liegen in genau einem Land).
-2. **Heutige Gemeinde:** ebenfalls per Punkt-in-Polygon. Für jede Gemeinde wird zusätzlich berechnet, welcher Flächenanteil in welchem alten Land liegt; Anteile unter 2 % gelten als Digitalisierungsrauschen.
-3. **Grenzlage:** Liegt ein Ort näher als 250 m an der Grenze zwischen zwei alten Ländern, wird das angezeigt (78 Orte). Die Außengrenze zu Bayern, Frankreich und der Schweiz zählt nicht.
+1. **Zuordnung:** Jeder Ortspunkt wird per Punkt-in-Polygon dem historischen Land zugeordnet, in dem er liegt (alle Orte liegen in genau einem Land).
+2. **Heutige Gemeinde:** ebenfalls per Punkt-in-Polygon. Als **geteilt** gilt eine Gemeinde, wenn bewohnte Orte (ohne Einzelhöfe) auf beiden Seiten der alten Grenze liegen – das sind 47. Zusätzlich wird berechnet, welcher Flächenanteil in welchem alten Land liegt (Anteile unter 2 % gelten als Digitalisierungsrauschen). Liegt nur unbewohnte Fläche jenseits der Grenze (z. B. Schiltach, Haßmersheim), steht das als Hinweis dabei.
+3. **Grenzlage:** Liegt ein Ort näher als 250 m an der Grenze zwischen zwei alten Ländern, wird das angezeigt (156 Einträge, davon viele Einzelhöfe). Die Außengrenze zu Bayern, Frankreich und der Schweiz zählt nicht.
 4. **Abstand und Nachbarort:** Für jeden Ort wird der Abstand zur nächsten inneren Grenze berechnet; der nächstgelegene Ort im jeweils anderen Land wird im Browser ermittelt.
 5. **Gegenprobe:** Die Gemeindenamen von 1945 werden normalisiert (ß → ss, „Bad“, „a. N.“, „, Stadt“ usw. entfernt) und mit den Orten abgeglichen. Bei mehrdeutigen Namen gewinnt der Ort, der am nächsten am Schwerpunkt der übrigen Gemeinden desselben Kreises liegt. Ergebnis: **3.111 von 3.119** eindeutig vergleichbaren Gemeinden (99,7 %) stimmen mit der Kartenzuordnung überein; die 8 Abweichungen sind überwiegend Namensdoppelungen (z. B. zwei „Bittelbronn“) und werden auf der Website markiert. 236 Gemeinden von 1945 ließen sich keinem heutigen Ortspunkt zuordnen (Namensänderungen, Zusammenlegungen) – Details in `validation_report.json`.
 

@@ -1,19 +1,19 @@
 {
- "places": 9145,
- "gemeinden": 1104,
+ "places": 14558,
+ "gemeinden": 1101,
  "byState": {
-  "B": 3140,
-  "W": 5812,
-  "X": 8,
-  "H": 185
+  "B": 5997,
+  "W": 8334,
+  "X": 10,
+  "H": 217
  },
- "mixedGemeinden": 49,
- "borderFlagged": 78,
+ "mixedGemeinden": 47,
+ "borderFlagged": 156,
  "sourcesDisagree": 1,
  "validation": {
   "agree": 3111,
   "disagree": 8,
   "compared": 3119
  },
- "withFacts": 3439
+ "withFacts": 3641
 }
