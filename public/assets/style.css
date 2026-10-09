@@ -148,6 +148,17 @@ body.has-result .hero { padding: 1.4rem 0 .6rem; }
 .namesakes a { white-space: nowrap; }
 .res__line { margin: .4rem 0 1rem; font-size: 1.2rem; max-width: 720px; }
 
+/* Damals → Heute */
+.thennow { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0 1.2rem; max-width: 900px; margin: .4rem auto 1.6rem; border: 1px solid var(--rule); background: var(--field); padding: 1rem 1.3rem; }
+.thennow__label { margin: 0 0 .4rem; font-family: var(--cond); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 1.05rem; color: var(--ink-2); }
+.thennow dl { margin: 0; }
+.thennow dt { font-family: var(--cond); text-transform: uppercase; letter-spacing: .06em; font-size: .8rem; color: var(--ink-2); margin-top: .45rem; }
+.thennow dd { margin: 0; font-size: 1.02rem; }
+.thennow dd b { font-weight: 600; }
+.thennow__arrow { align-self: center; font-family: var(--cond); font-size: 2.4rem; color: var(--sign); line-height: 1; }
+.thennow__story { grid-column: 1 / -1; margin: .9rem 0 0; padding-top: .8rem; border-top: 1px dotted var(--rule); font-size: 1rem; }
+.thennow__story:empty { display: none; }
+.thennow__story i { display: inline-block; width: .65rem; height: .65rem; margin: 0 .2rem 0 .1rem; background: var(--c); }
 .ledger { margin: 0 0 1.4rem; max-width: 720px; font-size: 1rem; }
 .ledger div { display: flex; align-items: baseline; gap: .5rem; padding: .3rem 0; }
 .ledger dt { font-family: var(--cond); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); white-space: nowrap; }
@@ -340,5 +351,7 @@ body.has-result .hero { padding: 1.4rem 0 .6rem; }
   .chrono dt { font-size: 1.4rem; }
   .entry { grid-template-columns: 1fr; gap: .2rem; }
   .parts th { width: auto; }
+  .thennow { grid-template-columns: 1fr; }
+  .thennow__arrow { transform: rotate(90deg); justify-self: start; margin: .3rem 0; }
   .facts__grid { grid-template-columns: 1fr; gap: 1rem; }
 }

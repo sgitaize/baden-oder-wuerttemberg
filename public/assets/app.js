@@ -263,12 +263,8 @@ function showResult(it) {
   }
   document.title = `${it.name}: ${STATE[it.state].adj} – Baden oder Württemberg?`;
 
+  renderThenNow(it, el);
   const rows = [
-    ['Land bis 1945', isMixedTown(it) ? gemStates(it.gem).map((k) => STATE[k].long).join(' / ') : STATE[it.state].long],
-    ['Kreis 1945', it.k45 && it.k45[1] === it.state
-      ? `<a href="${esc(it.k45[2])}" target="_blank" rel="noopener">${esc(it.k45[0])}</a>` : '<span title="Im Gemeindeverzeichnis 1945 nicht eindeutig gefunden">—</span>'],
-    ['Gemeinde heute', it.gem ? esc(it.gem.name) : '—'],
-    ['Kreis heute', it.gem && it.gem.kreis && it.gem.kreis !== it.gem.name ? esc(it.gem.kreis) : (it.gem ? 'kreisfrei' : '—')],
     ['Lage', `<a class="mono" href="https://www.openstreetmap.org/${it.osm >= SYNTHETIC_ID ? 'relation/' + (it.osm - SYNTHETIC_ID) : 'node/' + it.osm}" target="_blank" rel="noopener">${it.lat.toFixed(4)}° N, ${it.lon.toFixed(4)}° O</a>`],
   ];
   $('.ledger', el).innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
@@ -353,6 +349,64 @@ function onResultClick(e) {
   if (!f.hidden) f.querySelector('textarea').focus();
 }
 
+/* ---------- Damals → Heute ---------- */
+// A place was a municipality of its own in 1945 if it matched the 1945 register (k45) in the same state
+const wasGemeinde45 = (p) => p.k45 && p.k45[1] === p.state && p.flag !== 2 && p.type <= 5;
+const kreisLink = (k) => `<a href="${esc(k[2])}" target="_blank" rel="noopener">${esc(k[0])}</a>`;
+
+function renderThenNow(it, el) {
+  const box = $('.thennow', el);
+  const dl = (rows) => rows.filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  const mixed = isMixedTown(it);
+  const then = [
+    wasGemeinde45(it) ? ['Gemeinde', `<b>${esc(it.name)}</b>`] : (it.type === 7 ? null : ['Ort', `<b>${esc(it.name)}</b>`]),
+    it.k45 && it.k45[1] === it.state ? ['Kreis', kreisLink(it.k45)] : null,
+    ['Land', mixed ? gemStates(it.gem).map((k) => STATE[k].long).join(' / ') : STATE[it.state].long],
+  ];
+  const sameName = !it.gem || it.gem.name === it.name;
+  const now = [
+    sameName ? ['Gemeinde', `<b>${esc(it.gem ? it.gem.name : it.name)}</b>`]
+      : [`${TYPE[it.type] === 'Stadt' ? 'Stadt' : 'Ortsteil'} von`, `<b>${esc(it.gem.name)}</b><span class="thennow__joined"></span>`],
+    ['Kreis', it.gem && it.gem.kreis && it.gem.kreis !== it.gem.name ? esc(it.gem.kreis) : (it.gem ? 'kreisfreie Stadt' : '—')],
+    ['Land', 'Baden-Württemberg'],
+  ];
+  // Which 1945 municipalities make up today's Gemeinde?
+  const parts = it.gem ? DB.items.filter((p) => p.gem === it.gem && wasGemeinde45(p)) : [];
+  const names = new Set();
+  const uniq = parts.filter((p) => !names.has(p.name) && names.add(p.name));
+  const core = uniq.find((p) => p.name === it.gem?.name); // today's name already existed as a municipality
+  if (sameName && !wasGemeinde45(it) && !core && (uniq.length >= 2 || it.type === 7)) {
+    then[0] = ['Gemeinde', `<b>${esc(it.name)}</b> gab es so noch nicht`];
+  }
+  $('.thennow__then dl', box).innerHTML = dl(then);
+  $('.thennow__now dl', box).innerHTML = dl(now);
+
+  const story = $('.thennow__story', box);
+  story.innerHTML = '';
+  if (!it.gem) return;
+  const item = (p) => `<i style="--c:var(${STATE[p.state].color})"></i>${p === it ? `<b>${esc(p.name)}</b>` : `<a href="#ort/${p.osm}-${slug(p.name)}">${esc(p.name)}</a>`} (${STATE[p.state].name}, ${esc(p.k45[0].replace(/^(Land|Stadt)kreis /, ''))})`;
+  const sorted = (arr) => arr.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  const more = (n) => (n > 25 ? ' …' : '');
+  if (core && uniq.length >= 2) {
+    const added = sorted(uniq.filter((p) => p !== core));
+    story.innerHTML = `Zu <b>${esc(it.gem.name)}</b> kamen nach 1945 ${added.length === 1 ? 'eine früher selbstständige Gemeinde' : `${added.length} früher selbstständige Gemeinden`} hinzu: ${added.slice(0, 25).map(item).join(', ')}${more(added.length)}.`;
+  } else if (uniq.length >= 2) {
+    story.innerHTML = `<b>${esc(it.gem.name)}</b> entstand<span class="thennow__formed"></span> aus ${uniq.length} früheren Gemeinden: ${sorted(uniq).slice(0, 25).map(item).join(', ')}${more(uniq.length)}.`;
+  } else if (!sameName && wasGemeinde45(it)) {
+    story.innerHTML = `${esc(it.name)} war 1945 noch eine eigene Gemeinde und wurde später<span class="thennow__joined2"></span> nach ${esc(it.gem.name)} eingemeindet.`;
+  }
+}
+
+function fillYears(it, el, own, gem) {
+  const joined = own.j || own.d;
+  if (joined) {
+    const a = $('.thennow__joined', el); if (a) a.textContent = ` seit ${joined}`;
+    const b = $('.thennow__joined2', el); if (b) b.textContent = ` (${joined})`;
+  }
+  const formed = gem && gem.i && gem.i >= 1946 ? gem.i : null;
+  const f = $('.thennow__formed', el); if (f && formed) f.textContent = ` ${formed}`;
+}
+
 /* ---------- Steckbrief ---------- */
 let factsPromise = null;
 const loadFacts = () => (factsPromise ||= fetch('data.php?f=facts').then((r) => r.json()).catch(() => ({})));
@@ -430,6 +484,7 @@ async function renderFacts(it, el) {
   if (current !== it) return;
   const own = (it.qid && all[it.qid]) || {};
   const gem = (it.gem && it.gem.qid && it.gem.qid !== it.qid && all[it.gem.qid]) || null;
+  fillYears(it, el, own, (it.gem && it.gem.qid && all[it.gem.qid]) || null);
   const usesGem = !(own.p && own.p.length) && gem && gem.p;
   const popOf = usesGem && it.gem.name !== it.name ? ` (Gemeinde ${esc(it.gem.name)})` : '';
   const popSrc = usesGem ? gem : own;

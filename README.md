@@ -5,6 +5,7 @@
 - 14.558 Einträge – Städte, Dörfer, Stadt- und Ortsteile, Weiler und Einzelhöfe sowie alle 1.101 Gemeinden –, jeweils mit heutiger Gemeinde und heutigem Kreis
 - Kreis von 1945 als Beleg (verlinkt), Hinweis bei Orten in Grenzlage
 - 47 heutige Gemeinden mit Ortsteilen auf beiden Seiten der alten Grenze (z. B. Villingen-Schwenningen, Schramberg, Tuttlingen), aufgeschlüsselt nach Ortsteilen
+- **Damals → Heute**: Gemeinde, Kreis und Land 1945 neben dem heutigen Stand – und aus welchen früheren Gemeinden die heutige Gemeinde entstanden ist (z. B. Ölbronn-Dürrn aus dem badischen Dürrn und dem württembergischen Ölbronn)
 - **Steckbrief** zu jedem Ort: Einwohnerentwicklung als Diagramm, Fläche, Höhe, Einwohnerdichte, Ersterwähnung, Wappen und Foto, Abstand zur alten Grenze und nächster Ort „auf der anderen Seite“
 - Karte mit den schraffierten Ländergrenzen von 1939
 - Rückmeldungen zur Zuordnung und eine öffentliche **Ortschronik** zu jedem Ort – ohne Benutzerkonto, mit datensparsamem Captcha
@@ -79,6 +80,7 @@ In OpenStreetMap sind 3.318 Ortspunkte sowie alle Gemeinden und Kreise per `wiki
 | Höhe über NN | P2044 | 2.195 |
 | Ersterwähnung | P1249 | 206 |
 | Gründung / Auflösung (Eingemeindung) | P571 / P576 | 85 / 7 |
+| Zugehörigkeit zur heutigen Gemeinde seit | Startdatum `P580` an P131/P31 (ab 1946) | wenige |
 | Wappen / Foto | P94 / P18 | 2.217 / 2.137 |
 | Artikel in der deutschen Wikipedia | Sitelink `dewiki` | 3.219 |
 
@@ -93,8 +95,9 @@ Werte vor 1945 sind in Wikidata nur für rund 70 Orte erfasst. Die amtliche Reih
 1. **Zuordnung:** Jeder Ortspunkt wird per Punkt-in-Polygon dem historischen Land zugeordnet, in dem er liegt (alle Orte liegen in genau einem Land).
 2. **Heutige Gemeinde:** ebenfalls per Punkt-in-Polygon. Als **geteilt** gilt eine Gemeinde, wenn bewohnte Orte (ohne Einzelhöfe) auf beiden Seiten der alten Grenze liegen – das sind 47. Zusätzlich wird berechnet, welcher Flächenanteil in welchem alten Land liegt (Anteile unter 2 % gelten als Digitalisierungsrauschen). Liegt nur unbewohnte Fläche jenseits der Grenze (z. B. Schiltach, Haßmersheim), steht das als Hinweis dabei.
 3. **Grenzlage:** Liegt ein Ort näher als 250 m an der Grenze zwischen zwei alten Ländern, wird das angezeigt (156 Einträge, davon viele Einzelhöfe). Die Außengrenze zu Bayern, Frankreich und der Schweiz zählt nicht.
-4. **Abstand und Nachbarort:** Für jeden Ort wird der Abstand zur nächsten inneren Grenze berechnet; der nächstgelegene Ort im jeweils anderen Land wird im Browser ermittelt.
-5. **Gegenprobe:** Die Gemeindenamen von 1945 werden normalisiert (ß → ss, „Bad“, „a. N.“, „, Stadt“ usw. entfernt) und mit den Orten abgeglichen. Bei mehrdeutigen Namen gewinnt der Ort, der am nächsten am Schwerpunkt der übrigen Gemeinden desselben Kreises liegt. Ergebnis: **3.111 von 3.119** eindeutig vergleichbaren Gemeinden (99,7 %) stimmen mit der Kartenzuordnung überein; die 8 Abweichungen sind überwiegend Namensdoppelungen (z. B. zwei „Bittelbronn“) und werden auf der Website markiert. 236 Gemeinden von 1945 ließen sich keinem heutigen Ortspunkt zuordnen (Namensänderungen, Zusammenlegungen) – Details in `validation_report.json`.
+4. **Damals → Heute:** Ein Ort gilt als 1945 selbstständige Gemeinde, wenn er im Gemeindeverzeichnis 1945 gefunden wurde. Liegen mehrere solcher Orte in einer heutigen Gemeinde, zeigt die Seite, aus welchen früheren Gemeinden sie entstanden ist; das Jahr steht dabei, wenn Wikidata es kennt.
+5. **Abstand und Nachbarort:** Für jeden Ort wird der Abstand zur nächsten inneren Grenze berechnet; der nächstgelegene Ort im jeweils anderen Land wird im Browser ermittelt.
+6. **Gegenprobe:** Die Gemeindenamen von 1945 werden normalisiert (ß → ss, „Bad“, „a. N.“, „, Stadt“ usw. entfernt) und mit den Orten abgeglichen. Bei mehrdeutigen Namen gewinnt der Ort, der am nächsten am Schwerpunkt der übrigen Gemeinden desselben Kreises liegt. Ergebnis: **3.111 von 3.119** eindeutig vergleichbaren Gemeinden (99,7 %) stimmen mit der Kartenzuordnung überein; die 8 Abweichungen sind überwiegend Namensdoppelungen (z. B. zwei „Bittelbronn“) und werden auf der Website markiert. 236 Gemeinden von 1945 ließen sich keinem heutigen Ortspunkt zuordnen (Namensänderungen, Zusammenlegungen) – Details in `validation_report.json`.
 
 Stichproben bekannter Grenzfälle: Villingen badisch, Schwenningen württembergisch, Tennenbronn (heute Schramberg) badisch, Möhringen (heute Tuttlingen) badisch, Bad Herrenalb und Maulbronn württembergisch, Kürnbach badisch, Sigmaringen und Hechingen hohenzollerisch, Bad Wimpfen hessisch – alle korrekt.
 

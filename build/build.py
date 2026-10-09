@@ -122,6 +122,7 @@ def build_facts(qids):
             "f": year_of(d.get("first")) or None,
             "i": year_of(d.get("inception")) or None,
             "d": year_of(d.get("dissolved")) or None,
+            "j": d.get("joined"),
             "c": img(d.get("coa")), "img": img(d.get("image")),
             "w": d.get("article"),
         }

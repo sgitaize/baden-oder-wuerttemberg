@@ -66,6 +66,17 @@ def parse(ent):
             v = value(best)
             if v is not None:
                 d[key] = round(v, 2) if isinstance(v, float) else v
+    # year since when the place belongs to its current municipality (start qualifier on P131 / P31)
+    starts = []
+    for pid in ("P131", "P31"):
+        for c in claims.get(pid, []):
+            for q in c.get("qualifiers", {}).get("P580", []):
+                t = q.get("datavalue", {}).get("value", {}).get("time", "")
+                if t.lstrip("+")[:4].isdigit():
+                    starts.append(int(t.lstrip("+")[:4]))
+    recent = [y for y in starts if y >= 1946]
+    if recent:
+        d["joined"] = max(recent)
     link = ent.get("sitelinks", {}).get("dewiki", {}).get("title")
     if link:
         d["article"] = link
