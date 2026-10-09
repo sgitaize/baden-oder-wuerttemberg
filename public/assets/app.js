@@ -30,7 +30,7 @@ let current = null;
 
 /* ---------- Theme ---------- */
 function setThemeLabel() {
-  $('#themeToggle').textContent = document.documentElement.dataset.theme === 'dark' ? 'Tag' : 'Nacht';
+  $('#themeToggle').textContent = document.documentElement.dataset.theme === 'dark' ? 'Hell' : 'Dunkel';
 }
 $('#themeToggle').addEventListener('click', () => {
   const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -61,6 +61,7 @@ async function loadData() {
     return item;
   });
   renderStats(stats);
+  DB.borders = borders;
   initMap(borders);
   route();
 }
@@ -128,7 +129,18 @@ function setActive(i) {
   input.setAttribute('aria-activedescendant', opts[active].id);
 }
 
+const clearBtn = $('#clearQ');
+const syncClear = () => { clearBtn.hidden = !input.value; };
+clearBtn.addEventListener('click', () => {
+  input.value = '';
+  syncClear();
+  signSub.textContent = SIGN_DEFAULT;
+  closeSuggestions();
+  input.focus();
+});
+input.addEventListener('focus', () => { if (current && input.value === current.name) input.select(); });
 input.addEventListener('input', () => {
+  syncClear();
   if (!DB) return;
   signSub.textContent = SIGN_DEFAULT;
   hits = search(input.value);
@@ -159,9 +171,24 @@ function choose(it) {
 }
 
 /* ---------- Routing ---------- */
+function resetResult() {
+  current = null;
+  document.body.classList.remove('has-result');
+  $('#ergebnis').hidden = true;
+  input.value = '';
+  syncClear();
+  signSub.textContent = SIGN_DEFAULT;
+  document.title = 'Baden oder Württemberg? – Wo lag dein Ort vor 1945?';
+  if (marker) { marker.remove(); marker = null; }
+}
+
 function route() {
+  if (!DB) return;
   const m = location.hash.match(/^#ort\/(\d+)/);
-  if (!m || !DB) return;
+  if (!m) {
+    if (current && !/^#(karte|geschichte|quellen|datenschutz)$/.test(location.hash)) resetResult();
+    return;
+  }
   const it = byOsm.get(m[1]);
   if (it) showResult(it);
 }
@@ -208,6 +235,8 @@ function showResult(it) {
   el.dataset.state = it.state;
 
   input.value = it.name;
+  syncClear();
+  document.body.classList.add('has-result');
   sign.dataset.state = it.state;
   signSub.textContent = isMixedTown(it)
     ? Object.keys(it.gem.shares).map((k) => STATE[k].long.split(' (')[0]).join(' / ')
@@ -217,6 +246,14 @@ function showResult(it) {
   $('.res__ctx', el).textContent = context(it);
   $('.res__big', el).innerHTML = h.big;
   $('.res__line', el).innerHTML = h.line;
+  $('.locator', el).innerHTML = locatorSvg(it);
+  const twins = DB.items.filter((p) => p.key === it.key && p !== it && p.type <= 5);
+  if (twins.length) {
+    const box = $('.namesakes', el);
+    box.hidden = false;
+    box.innerHTML = `${twins.length === 1 ? 'Einen weiteren Ort' : `${twins.length} weitere Orte`} namens ${esc(it.name)}: ` + twins.slice(0, 12)
+      .map((p) => `<a href="#ort/${p.osm}-${slug(p.name)}">${esc(context(p))}</a> (${STATE[p.state].name})`).join(', ') + (twins.length > 12 ? ' …' : '');
+  }
   document.title = `${it.name}: ${STATE[it.state].adj} – Baden oder Württemberg?`;
 
   const rows = [
@@ -246,6 +283,7 @@ function showResult(it) {
   loadStories(it);
 
   $('#ergebnis').hidden = false;
+  fitBig($('.res__big', el));
   $('.sign-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
   if (map) {
     if (marker) marker.remove();
@@ -254,6 +292,38 @@ function showResult(it) {
     }).addTo(map).bindTooltip(it.name, { permanent: true, direction: 'right', offset: [8, 0] });
     map.setView([it.lat, it.lon], 11);
   }
+}
+
+// Shrink the big verdict until no word overflows its box
+function fitBig(el) {
+  el.style.fontSize = '';
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  while (size > 24 && el.scrollWidth > el.clientWidth + 1) {
+    size *= 0.92;
+    el.style.fontSize = `${size}px`;
+  }
+}
+window.addEventListener('resize', () => { const b = $('#result .res__big'); if (b) fitBig(b); });
+
+// Small schematic map of today's BW with the old states and the place
+let locatorPaths = null;
+function locatorSvg(it) {
+  const W = 260, H = 300, X0 = 7.45, X1 = 10.55, Y0 = 47.48, Y1 = 49.85;
+  const k = Math.cos((48.6 * Math.PI) / 180);
+  const sx = (W - 8) / ((X1 - X0) * k), sy = (H - 8) / (Y1 - Y0), sc = Math.min(sx, sy);
+  const px = (lon) => 4 + (lon - X0) * k * sc;
+  const py = (lat) => 4 + (Y1 - lat) * sc;
+  if (!locatorPaths) {
+    locatorPaths = DB.borders.features.map((f) => {
+      const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+      const d = polys.map((poly) => poly.map((ring) => 'M' + ring.map(([lon, lat]) => `${px(lon).toFixed(1)},${py(lat).toFixed(1)}`).join('L') + 'Z').join('')).join('');
+      return `<path class="st-${f.properties.code}" d="${d}" />`;
+    }).join('');
+  }
+  const x = px(it.lon).toFixed(1), y = py(it.lat).toFixed(1);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Lage von ${esc(it.name)}">${locatorPaths}
+    <circle class="pin-ring" cx="${x}" cy="${y}" r="11" /><circle class="pin" cx="${x}" cy="${y}" r="5" /></svg>
+    <figcaption>Lage im heutigen Land, Flächen = Länder 1939 · <a href="#karte">große Karte</a></figcaption>`;
 }
 
 function onResultClick(e) {
@@ -556,6 +626,15 @@ function renderStats(s) {
   const v = s.validation;
   $('#validationText').textContent = `Von ${fmt(v.compared)} eindeutig vergleichbaren Gemeinden stimmen ${fmt(v.agree)} (${(v.agree / v.compared * 100).toFixed(1).replace('.', ',')} %) mit der Karte überein; die übrigen sind überwiegend Namensdoppelungen. Wo es passt, ist der Kreis von 1945 als Beleg verlinkt.`;
 }
+
+/* ---------- Neue Suche aus dem Kopf ---------- */
+const newSearch = $('#newSearch');
+new IntersectionObserver(([e]) => { newSearch.hidden = e.isIntersecting; }).observe(sign);
+newSearch.addEventListener('click', () => {
+  $('.sign-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  input.focus({ preventScroll: true });
+  input.select();
+});
 
 /* ---------- Datenschutz ---------- */
 $('#privacyLink').addEventListener('click', () => {

@@ -18,15 +18,16 @@
 <body>
   <a class="skip" href="#q">Zur Suche springen</a>
 
-  <header class="mast">
+  <div class="mast-bar"><header class="mast">
     <a class="mast__title" href="./">Baden <i>oder</i> Württemberg</a>
     <nav class="mast__nav" aria-label="Abschnitte">
+      <button type="button" class="mast__search" id="newSearch" hidden>Ort suchen</button>
       <a href="#karte">Karte</a>
       <a href="#geschichte">Geschichte</a>
       <a href="#quellen">Quellen</a>
-      <button id="themeToggle" class="mast__theme" type="button" aria-label="Hell/Dunkel umschalten">Tag</button>
+      <button id="themeToggle" class="mast__theme" type="button" aria-label="Hell/Dunkel umschalten">Hell</button>
     </nav>
-  </header>
+  </header></div>
 
   <main>
     <section class="hero" aria-labelledby="heroQ">
@@ -37,12 +38,14 @@
           <div class="sign__inner">
             <label class="sr" for="q">Ortsname</label>
             <input id="q" class="sign__input" type="search" autocomplete="off" spellcheck="false" placeholder="Ortsname" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="suggestions" />
+            <button type="button" class="sign__clear" id="clearQ" aria-label="Eingabe löschen" hidden>×</button>
             <p class="sign__sub" id="signSub">Baden · Württemberg · Hohenzollern</p>
           </div>
         </div>
         <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
       </div>
 
+      <p class="hero__hint" id="heroHint">Tipp: Ortsnamen auf das Schild schreiben – auch Ortsteile und Weiler.</p>
       <p class="hero__try">Zum Beispiel
         <button type="button" class="tl" data-try="Villingen">Villingen</button>,
         <button type="button" class="tl" data-try="Schwenningen">Schwenningen</button>,
@@ -116,11 +119,16 @@
   </footer>
 
   <template id="tplResult">
-    <header class="res__head">
-      <p class="res__ctx"></p>
-      <p class="res__big"></p>
-      <p class="res__line"></p>
-    </header>
+    <div class="res__top">
+      <header class="res__head">
+        <p class="res__ctx"></p>
+        <p class="res__big"></p>
+        <p class="res__line"></p>
+        <ol class="notes"></ol>
+        <p class="namesakes" hidden></p>
+      </header>
+      <figure class="locator" aria-label="Lage im heutigen Baden-Württemberg"></figure>
+    </div>
     <dl class="ledger"></dl>
     <div class="res__mixed"></div>
     <section class="facts" hidden>
@@ -137,7 +145,6 @@
         <aside class="facts__media"></aside>
       </div>
     </section>
-    <ol class="notes"></ol>
     <p class="res__actions">
       <button type="button" class="tl" data-act="share">Link teilen</button>
       <span aria-hidden="true">·</span>
