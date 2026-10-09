@@ -45,9 +45,9 @@ setThemeLabel();
 /* ---------- Data ---------- */
 async function loadData() {
   const [places, borders, stats] = await Promise.all([
-    fetch('data/places.json').then((r) => r.json()),
-    fetch('data/borders.json').then((r) => r.json()),
-    fetch('data/stats.json').then((r) => r.json()),
+    fetch('data.php?f=places').then((r) => r.json()),
+    fetch('data.php?f=borders').then((r) => r.json()),
+    fetch('data.php?f=stats').then((r) => r.json()),
   ]);
   DB = places;
   DB.items = places.places.map((p) => {
@@ -273,7 +273,7 @@ function onResultClick(e) {
 
 /* ---------- Steckbrief ---------- */
 let factsPromise = null;
-const loadFacts = () => (factsPromise ||= fetch('data/facts.json').then((r) => r.json()).catch(() => ({})));
+const loadFacts = () => (factsPromise ||= fetch('data.php?f=facts').then((r) => r.json()).catch(() => ({})));
 const num = (n, d = 0) => n.toLocaleString('de-DE', { maximumFractionDigits: d });
 
 function nearestAcross(it) {

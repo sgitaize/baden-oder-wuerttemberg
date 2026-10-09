@@ -20,6 +20,8 @@ return ['admin_token' => '$ADMIN_TOKEN', 'admin_mail' => '${ADMIN_MAIL:-}', 'mai
 PHP
 
 cd "$TMP/public"
+# vorkomprimierte Daten für data.php
+for j in data/*.json; do gzip -9 -k -n "$j"; done
 n=0
 while IFS= read -r -d '' f; do
   f="${f#./}"
@@ -33,7 +35,7 @@ echo "hochgeladen: $n Dateien ($(git -C "$OLDPWD" rev-parse --short HEAD))"
 
 check() { printf '%-28s %s\n' "$1" "$(curl -sk -o /dev/null -w '%{http_code}' "$SITE_URL/$1")"; }
 check ""
-check "data/places.json"
+check "data.php?f=places"
 check "api/api.php?a=captcha"
 check "api/lib.php"            # erwartet 403
 check "api/config.php"         # erwartet 403
