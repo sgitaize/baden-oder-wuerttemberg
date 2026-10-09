@@ -20,6 +20,9 @@ return ['admin_token' => '$ADMIN_TOKEN', 'admin_mail' => '${ADMIN_MAIL:-}', 'mai
 PHP
 
 cd "$TMP/public"
+# Cache-Busting: Version an CSS/JS hängen (Browser cachen 1 h)
+V="$(git -C "$OLDPWD" rev-parse --short HEAD)"
+sed -i "s#assets/style.css#assets/style.css?v=$V#; s#assets/app.js#assets/app.js?v=$V#" index.html
 # vorkomprimierte Daten für data.php
 for j in data/*.json; do gzip -9 -k -n "$j"; done
 n=0
