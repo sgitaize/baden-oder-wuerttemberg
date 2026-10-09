@@ -387,9 +387,14 @@ function chartSvg(series, state, width) {
   const tick = W < 480 ? (span > 120 ? 100 : span > 50 ? 25 : 10) : (span > 120 ? 50 : span > 50 ? 20 : 10);
   let ticks = '';
   for (let t = Math.ceil(x0 / tick) * tick; t <= x1; t += tick) ticks += `<text x="${x(t)}" y="${H - 6}" text-anchor="middle">${t}</text>`;
-  const events = (W < 480 ? [[1952, 'BW'], [1975, 'Reform']] : [[1952, 'Baden-Württemberg'], [1975, 'Gemeindereform']])
+  // markers; labels are staggered and shortened when the two lines sit close together
+  const close = x(1975) - x(1952) < 150;
+  const events = (W < 480 || close ? [[1952, 'BW'], [1975, 'Reform']] : [[1952, 'Baden-Württemberg'], [1975, 'Gemeindereform']])
     .filter(([e]) => e > x0 && e < x1)
-    .map(([e, label]) => `<line class="ev" x1="${x(e)}" x2="${x(e)}" y1="${T - 6}" y2="${H - B}" /><text class="lbl" x="${x(e) + 4}" y="${T + 4}">${e} ${label}</text>`).join('');
+    .map(([e, label], i) => {
+      const right = close && i === 0;
+      return `<line class="ev" x1="${x(e)}" x2="${x(e)}" y1="${T - 6}" y2="${H - B}" /><text class="lbl" x="${x(e) + (right ? -4 : 4)}" y="${T + 4 + (close ? i * 15 : 0)}" text-anchor="${right ? 'end' : 'start'}">${e} ${label}</text>`;
+    }).join('');
   const last = series[series.length - 1];
   const first = series[0];
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Einwohner von ${first[0]} bis ${last[0]}" style="--c:var(${STATE[state].color})">
@@ -397,7 +402,7 @@ function chartSvg(series, state, width) {
     <polygon class="area" points="${x(first[0])},${H - B} ${pts.join(' ')} ${x(last[0])},${H - B}" />
     <polyline class="line" points="${pts.join(' ')}" />
     ${series.length <= 40 ? series.map(([a, b]) => `<circle class="dot" cx="${x(a)}" cy="${y(b)}" r="2.6"><title>${a}: ${num(b)}</title></circle>`).join('') : ''}
-    <text class="val" x="${x(last[0])}" y="${y(last[1]) - 8}" text-anchor="end">${num(last[1])}</text>
+    <text class="val" x="${x(last[0]) - 6}" y="${Math.min(H - B - 6, y(last[1]) + 18)}" text-anchor="end">${num(last[1])}</text>
   </svg>`;
 }
 
