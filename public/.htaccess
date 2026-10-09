@@ -1,0 +1,11 @@
+# Kompression und Caching (Daten ändern sich nur mit einem Deploy)
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE application/json text/css application/javascript text/javascript text/html image/svg+xml
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType application/json "access plus 1 hour"
+  ExpiresByType text/css "access plus 1 hour"
+  ExpiresByType application/javascript "access plus 1 hour"
+  ExpiresByType text/javascript "access plus 1 hour"
+</IfModule>
