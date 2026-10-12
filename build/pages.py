@@ -56,7 +56,7 @@ def page(title, desc, path, body, crumbs):
 {body}
   </main>
   <footer class="colophon">
-    <p>Herausgegeben von <a href="https://simongutjahr.de">Simon Gutjahr</a> · <a href="https://github.com/sgitaize/baden-oder-wuerttemberg">Quellcode &amp; Daten auf GitHub</a> · <a href="/presse/">Presse</a> · <a href="https://simongutjahr.de/impressum/">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a></p>
+    <p>Herausgegeben von <a href="https://simongutjahr.de">Simon Gutjahr</a> · <a href="https://github.com/sgitaize/baden-oder-wuerttemberg">Quellcode &amp; Daten auf GitHub</a> · <a href="https://simongutjahr.de/impressum/">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a></p>
     <p class="colophon__small">Orts- und Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende (<a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL</a>) · historische Grenzen <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a> · Gemeindeverzeichnisse 1945 <a href="https://territorial.de/">territorial.de</a></p>
   </footer>
 </body>
@@ -137,7 +137,7 @@ QUIZ_JS = r"""
 """
 
 
-def quiz_and_press(P, G, K45, stats):
+def quiz_page(P, G, K45, stats):
     body = f"""    <header class="sec__head"><span class="sec__no">Quiz</span><h1>Badisch oder württembergisch?</h1></header>
     <p class="sec__lead">Zehn Orte, eine Frage: Wo lag der Ort vor 1945? Die meisten liegen nah an der alten Landesgrenze – Bauchgefühl hilft nur bedingt.</p>
     <div class="quiz__card">
@@ -156,36 +156,6 @@ def quiz_and_press(P, G, K45, stats):
     <script>{QUIZ_JS}</script>"""
     write('/quiz/', page('Quiz: Badisch oder württembergisch? – Baden oder Württemberg?', 'Zehn Orte aus Baden-Württemberg: Lagen sie vor 1945 in Baden, Württemberg, Hohenzollern oder Hessen? Teste dein Wissen über die alte Landesgrenze.', '/quiz/', body, [('Start', '/')]))
 
-    bs = stats['byState']
-    body = f"""    <header class="sec__head"><span class="sec__no">Presse</span><h1>Presse &amp; Medien</h1></header>
-    <p class="sec__lead"><b>baden-oder-württemberg.de</b> beantwortet eine Frage, die in Baden-Württemberg bis heute Gespräche füllt: War mein Ort früher badisch oder württembergisch? Für {de_num(stats['places'])} Orte, Ortsteile und Wohnplätze zeigt die Seite, in welchem Land sie vor 1945 lagen – mit Karte, Quellen und einer Ortschronik zum Mitschreiben.</p>
-    <h2>Zahlen</h2>
-    <dl class="ledger">
-      <div><dt>Orte, Ortsteile, Wohnplätze</dt><dd>{de_num(stats['places'])}</dd></div>
-      <div><dt>davon badisch</dt><dd>{de_num(bs.get('B', 0))}</dd></div>
-      <div><dt>davon württembergisch</dt><dd>{de_num(bs.get('W', 0))}</dd></div>
-      <div><dt>davon hohenzollerisch</dt><dd>{de_num(bs.get('H', 0))}</dd></div>
-      <div><dt>davon hessisch (Bad Wimpfen)</dt><dd>{de_num(bs.get('X', 0))}</dd></div>
-      <div><dt>heutige Gemeinden</dt><dd>{de_num(stats['gemeinden'])}</dd></div>
-      <div><dt>Gemeinden mit badischen und württembergischen Teilen</dt><dd>{stats['mixedGemeinden']}</dd></div>
-      <div><dt>Kreise im Jahr 1945</dt><dd>{len(K45)}</dd></div>
-      <div><dt>Übereinstimmung mit den Gemeindeverzeichnissen 1945</dt><dd>{de_num(stats['validation']['agree'])} von {de_num(stats['validation']['compared'])}</dd></div>
-    </dl>
-    <h2>Was die Seite kann</h2>
-    <ul>
-      <li><b>Ortsschild-Suche:</b> Ortsname eintippen, das gelbe Schild zeigt das alte Land.</li>
-      <li><b>Historische Karte</b> mit den Landesgrenzen 1918–1945 (Baden, Württemberg, Hohenzollerische Lande, Hessen).</li>
-      <li><b>Damals → Heute:</b> Gemeinde, Kreis und Land 1945 neben der heutigen Gemeinde – auch für die {stats['mixedGemeinden']} Gemeinden, die durch die Gemeindereform über die alte Grenze hinweg zusammengewachsen sind (z.&nbsp;B. Villingen-Schwenningen).</li>
-      <li><b>Ortschronik:</b> Leser*innen schreiben Erinnerungen, Familiengeschichten und Dialekt-Anekdoten zu ihrem Ort.</li>
-      <li><b><a href="/quiz/">Quiz</a></b> mit Orten nahe der alten Grenze, <b><a href="/orte/">Verzeichnis</a></b> aller Gemeinden und Kreise 1945.</li>
-    </ul>
-    <h2>Methode und Quellen</h2>
-    <p>Grundlage sind die historischen Landesgrenzen aus der <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a> und die Orte aus <a href="https://www.openstreetmap.org/">OpenStreetMap</a>. Jeder Ort wird geometrisch den Ländern von 1945 zugeordnet und mit den Gemeindeverzeichnissen 1945 von <a href="https://territorial.de/">territorial.de</a> gegengeprüft. Orte nah an der Grenze sind gekennzeichnet. Code und Daten sind offen: <a href="https://github.com/sgitaize/baden-oder-wuerttemberg">GitHub</a> (MIT, Daten ODbL).</p>
-    <h2>Bildmaterial</h2>
-    <p><a href="/assets/og.png">Vorschaubild (1200 × 630 px, PNG)</a> – frei verwendbar für Berichte über die Seite.</p>
-    <h2>Kontakt</h2>
-    <p>Simon Gutjahr, Karlsruhe · <a href="mailto:kontakt@simongutjahr.de">kontakt@simongutjahr.de</a> · <a href="https://simongutjahr.de">simongutjahr.de</a></p>"""
-    write('/presse/', page('Presse – Baden oder Württemberg?', 'Pressematerial zu baden-oder-württemberg.de: Zahlen, Methode, Quellen, Bildmaterial und Kontakt.', '/presse/', body, [('Start', '/')]))
 
 
 def main():
@@ -211,7 +181,7 @@ def main():
         for k in c:
             k45_gems[k].add(gi)
 
-    urls = ['/', '/orte/', '/quiz/', '/presse/']
+    urls = ['/', '/orte/', '/quiz/']
     # ---------- Gemeinden ----------
     for gi, g in enumerate(G):
         if not by_gem.get(gi):
@@ -303,7 +273,7 @@ def main():
 {az}'''
     write('/orte/', page('Alle Orte und Kreise – Baden oder Württemberg?', f'Verzeichnis aller {len(G)} Gemeinden in Baden-Württemberg und der {len(K45)} Kreise von 1945: badisch, württembergisch, hohenzollerisch oder hessisch?', '/orte/', body, [('Start', '/')]))
 
-    quiz_and_press(P, G, K45, json.load(open(os.path.join(ROOT, 'data', 'stats.json'), encoding='utf-8')))
+    quiz_page(P, G, K45, json.load(open(os.path.join(ROOT, 'data', 'stats.json'), encoding='utf-8')))
     today = date.today().isoformat()
     with open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8') as fh:
         fh.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
