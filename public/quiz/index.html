@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz: Badisch oder württembergisch? – Baden oder Württemberg?</title>
+  <meta name="description" content="Zehn Orte aus Baden-Württemberg: Lagen sie vor 1945 in Baden, Württemberg, Hohenzollern oder Hessen? Teste dein Wissen über die alte Landesgrenze." />
+  <link rel="canonical" href="https://xn--baden-oder-wrttemberg-kic.de/quiz/" />
+  <meta property="og:title" content="Quiz: Badisch oder württembergisch? – Baden oder Württemberg?" />
+  <meta property="og:description" content="Zehn Orte aus Baden-Württemberg: Lagen sie vor 1945 in Baden, Württemberg, Hohenzollern oder Hessen? Teste dein Wissen über die alte Landesgrenze." />
+  <meta property="og:image" content="https://xn--baden-oder-wrttemberg-kic.de/assets/og.png" />
+  <meta name="theme-color" content="#151719" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/fonts.css" />
+  <link rel="stylesheet" href="/assets/style.css" />
+  <script>try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+</head>
+<body>
+  <div class="mast-bar"><header class="mast">
+    <a class="mast__title" href="/">Baden <i>oder</i> Württemberg</a>
+    <nav class="mast__nav" aria-label="Navigation"><a href="/">Ort suchen</a><a href="/orte/">Alle Orte</a><a href="/quiz/">Quiz</a></nav>
+  </header></div>
+  <main class="legal static">
+    <p class="crumbs"><a href="/">Start</a></p>
+    <header class="sec__head"><span class="sec__no">Quiz</span><h1>Badisch oder württembergisch?</h1></header>
+    <p class="sec__lead">Zehn Orte, eine Frage: Wo lag der Ort vor 1945? Die meisten liegen nah an der alten Landesgrenze – Bauchgefühl hilft nur bedingt.</p>
+    <div class="quiz__card">
+      <p class="quiz__place" id="qPlace">Lade Orte …</p>
+      <p class="quiz__ctx" id="qCtx"></p>
+      <div class="quiz__opts" id="qOpts" hidden>
+        <button class="stamp" type="button" data-s="B" style="--c:var(--B)">Baden</button>
+        <button class="stamp" type="button" data-s="W" style="--c:var(--W)">Württemberg</button>
+        <button class="stamp" type="button" data-s="H" style="--c:var(--H)">Hohenzollern</button>
+        <button class="stamp" type="button" data-s="X" style="--c:var(--X)">Hessen</button>
+      </div>
+      <p class="quiz__res" id="qRes" role="status"></p>
+      <p><button class="stamp" type="button" id="qNext" hidden>Nächster Ort</button> <button class="stamp" type="button" id="qShare" hidden>Ergebnis teilen</button></p>
+    </div>
+    <p class="quiz__score" id="qScore"></p>
+    <script>
+(() => {
+  const ST = { B: ['Baden', 'badisch', '--B'], W: ['Württemberg', 'württembergisch', '--W'], H: ['Hohenzollern', 'hohenzollerisch', '--H'], X: ['Hessen', 'hessisch', '--X'] };
+  const TYPE = ['Stadt', 'Stadt', 'Dorf'];
+  const N = 10, $ = (s) => document.querySelector(s);
+  const norm = (s) => s.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\bst\.\s*/g, 'sankt ').replace(/[^a-z0-9]+/g, ' ').trim();
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let near = [], far = [], G = [], round = 0, score = 0, cur = null, used = new Set();
+  let best = 0; try { best = +localStorage.getItem('quizBest') || 0; } catch (e) {}
+  const pick = () => { for (;;) { const pool = Math.random() < 0.7 ? near : far, p = pool[Math.floor(Math.random() * pool.length)]; if (!used.has(p[7])) { used.add(p[7]); return p; } } };
+  function show() {
+    cur = pick(); round++;
+    const g = cur[5] >= 0 ? G[cur[5]] : null;
+    $('#qPlace').textContent = cur[0];
+    $('#qCtx').textContent = (g && g.name !== cur[0] ? TYPE[cur[1]] + ' von ' + g.name + ', ' : TYPE[cur[1]] + ', ') + (g ? g.kreis : '');
+    $('#qRes').innerHTML = ''; $('#qNext').hidden = true;
+    document.querySelectorAll('[data-s]').forEach((b) => { b.disabled = false; });
+    $('#qScore').textContent = 'Frage ' + round + ' von ' + N + ' · ' + score + ' richtig';
+  }
+  function answer(s) {
+    document.querySelectorAll('[data-s]').forEach((b) => { b.disabled = true; });
+    const ok = s === cur[4]; if (ok) score++;
+    const link = '/#ort/' + cur[7] + '-' + norm(cur[0]).replace(/ /g, '-');
+    $('#qRes').innerHTML = (ok ? '<b>Richtig!</b> ' : '<b>Leider nein.</b> ') + esc(cur[0]) + ' war ' +
+      '<span class="mark" style="--c:var(' + ST[cur[4]][2] + ')">' + ST[cur[4]][1] + '</span>' +
+      (cur[9] != null && cur[9] < 3 ? ' – nur ' + String(cur[9]).replace('.', ',') + '&nbsp;km von der alten Grenze.' : '.') +
+      ' <a href="' + link + '">Mehr zum Ort</a>';
+    $('#qScore').textContent = 'Frage ' + round + ' von ' + N + ' · ' + score + ' richtig';
+    $('#qNext').textContent = round < N ? 'Nächster Ort' : 'Ergebnis';
+    $('#qNext').hidden = false; $('#qNext').focus();
+  }
+  function done() {
+    if (score > best) { best = score; try { localStorage.setItem('quizBest', String(best)); } catch (e) {} }
+    const txt = 'Baden oder Württemberg? Ich habe ' + score + ' von ' + N + ' Orten richtig zugeordnet.';
+    $('#qPlace').textContent = score + ' / ' + N;
+    $('#qCtx').textContent = score >= 9 ? 'Landeskundliche Spitzenklasse!' : score >= 7 ? 'Sehr ordentlich – du kennst dich aus.' : score >= 5 ? 'Solide. Die alte Grenze ist tückisch.' : 'Die Grenze verlief oft anders, als man denkt.';
+    $('#qRes').innerHTML = 'Dein Bestwert: ' + best + ' / ' + N;
+    document.querySelectorAll('[data-s]').forEach((b) => { b.disabled = true; });
+    $('#qNext').textContent = 'Nochmal'; $('#qNext').hidden = false;
+    $('#qShare').hidden = false;
+    $('#qShare').onclick = () => {
+      const url = location.origin + '/quiz/';
+      if (navigator.share) navigator.share({ text: txt, url }).catch(() => {});
+      else navigator.clipboard.writeText(txt + ' ' + url).then(() => { $('#qShare').textContent = 'Kopiert'; });
+    };
+    round = N + 1;
+  }
+  document.querySelectorAll('[data-s]').forEach((b) => b.addEventListener('click', () => answer(b.dataset.s)));
+  $('#qNext').addEventListener('click', () => {
+    if (round > N) { round = 0; score = 0; used.clear(); $('#qShare').hidden = true; $('#qShare').textContent = 'Ergebnis teilen'; show(); }
+    else if (round === N) done(); else show();
+  });
+  fetch('/data.php?f=places').then((r) => r.json()).then((d) => {
+    G = d.gemeinden;
+    for (const p of d.places) if (p[1] <= 2 && p[6] === 0) (p[9] != null && p[9] < 8 ? near : far).push(p);
+    $('#qOpts').hidden = false; show();
+  }).catch(() => { $('#qPlace').textContent = 'Daten nicht erreichbar'; });
+})();
+</script>
+  </main>
+  <footer class="colophon">
+    <p>Herausgegeben von <a href="https://simongutjahr.de">Simon Gutjahr</a> · <a href="https://github.com/sgitaize/baden-oder-wuerttemberg">Quellcode &amp; Daten auf GitHub</a> · <a href="/presse/">Presse</a> · <a href="https://simongutjahr.de/impressum/">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a></p>
+    <p class="colophon__small">Orts- und Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende (<a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL</a>) · historische Grenzen <a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a> · Gemeindeverzeichnisse 1945 <a href="https://territorial.de/">territorial.de</a></p>
+  </footer>
+</body>
+</html>

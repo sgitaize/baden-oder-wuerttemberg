@@ -20,7 +20,8 @@ public/            Website (= Docroot)
   api/             PHP + SQLite: api.php (öffentlich), admin.php (Moderation), lib.php
 sources/           aufbereitete Rohdaten (siehe unten), versioniert
 build/             Datenaufbereitung: fetch.sh, fetch_territorial.py, fetch_wikidata.py, fetch_commons.py,
-                   build.py, validate.py, export_sources.py
+                   build.py, validate.py, export_sources.py,
+                   pages.py (statische Seiten je Gemeinde/Kreis 1945, Verzeichnis, Quiz, Presse, sitemap.xml), og.html (Vorschaubild)
 deploy/deploy.sh   Upload per FTPS – nur der committete und gepushte Stand
 ```
 
@@ -110,6 +111,7 @@ cd build
 uv venv .venv && uv pip install --python .venv/bin/python shapely
 ./fetch.sh                          # lädt alles nach build/cache/ (~65 MB, nicht im Repo; ca. 10 Minuten)
 .venv/bin/python build.py           # erzeugt public/data/*.json und gibt die Statistik aus
+python3 pages.py                    # erzeugt public/gemeinde/, public/kreis/, public/orte/, quiz/, presse/, sitemap.xml
 .venv/bin/python validate.py        # zeigt Widersprüche und nicht zugeordnete Gemeinden
 .venv/bin/python export_sources.py  # schreibt sources/
 ```

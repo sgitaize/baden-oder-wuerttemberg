@@ -25,13 +25,11 @@ V="$(git -C "$OLDPWD" rev-parse --short HEAD)"
 sed -i "s#assets/style.css#assets/style.css?v=$V#; s#assets/app.js#assets/app.js?v=$V#" index.html
 # vorkomprimierte Daten für data.php
 for j in data/*.json; do gzip -9 -k -n "$j"; done
-n=0
-while IFS= read -r -d '' f; do
-  f="${f#./}"
-  curl -sS --max-time 120 --retry 2 --ssl-reqd -k --ftp-create-dirs --user "$DEPLOY_USER:$DEPLOY_PASS" \
-    -T "$f" "ftp://$DEPLOY_HOST/httpdocs/$f"
-  n=$((n + 1))
-done < <(find . -type f ! -name config.sample.php -print0)
+# lftp mirror: nur geänderte Dateien (Größe/Zeit), parallel – bei >1.000 statischen Seiten viel schneller als curl je Datei
+lftp -u "$DEPLOY_USER,$DEPLOY_PASS" -e "set ftp:ssl-force true; set ssl:verify-certificate no; set net:max-retries 3; \
+  mirror -R --parallel=8 --exclude-glob config.sample.php --exclude-glob api/data/ . httpdocs; quit" "$DEPLOY_HOST" > "$TMP/lftp.log" 2>&1 \
+  || { tail -5 "$TMP/lftp.log"; exit 1; }
+n=$(find . -type f ! -name config.sample.php | wc -l)
 # PHP läuft als anderer User: Datenordner beschreibbar machen
 curl -sS --max-time 30 --ssl-reqd -k --user "$DEPLOY_USER:$DEPLOY_PASS" -o /dev/null "ftp://$DEPLOY_HOST/" -Q 'SITE CHMOD 777 httpdocs/api/data'
 echo "hochgeladen: $n Dateien ($(git -C "$OLDPWD" rev-parse --short HEAD))"
