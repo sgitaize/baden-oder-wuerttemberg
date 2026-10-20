@@ -2,6 +2,10 @@
 
 **[baden-oder-württemberg.de](https://baden-oder-württemberg.de)** – ein Ortsverzeichnis für das heutige Baden-Württemberg: Lag ein Ort vor 1945 in **Baden**, in **Württemberg**, in den preußischen **Hohenzollerischen Landen** – oder, im Fall von Bad Wimpfen, sogar in **Hessen**?
 
+**Status:** live · Daten vom 8. 10. 2026 · wird gepflegt
+
+## Funktionen
+
 - 14.558 Einträge – Städte, Dörfer, Stadt- und Ortsteile, Weiler und Einzelhöfe sowie alle 1.101 Gemeinden –, jeweils mit heutiger Gemeinde und heutigem Kreis
 - Kreis von 1945 als Beleg (verlinkt), Hinweis bei Orten in Grenzlage
 - 47 heutige Gemeinden mit Ortsteilen auf beiden Seiten der alten Grenze (z. B. Villingen-Schwenningen, Schramberg, Tuttlingen), aufgeschlüsselt nach Ortsteilen
@@ -9,6 +13,18 @@
 - **Steckbrief** zu jedem Ort: Einwohnerentwicklung als Diagramm, Fläche, Höhe, Einwohnerdichte, Ersterwähnung, Wappen und Foto, Abstand zur alten Grenze und nächster Ort „auf der anderen Seite“
 - Karte mit den schraffierten Ländergrenzen von 1939
 - Rückmeldungen zur Zuordnung und eine öffentliche **Ortschronik** zu jedem Ort – ohne Benutzerkonto, mit datensparsamem Captcha
+
+## Architektur
+
+<p align="center"><img src="docs/architecture.png" alt="Architektur: Offene Daten (OpenHistoricalMap, OpenStreetMap, territorial.de, Wikidata) werden in build/ abgerufen, zugeordnet und zu Seiten gebaut, per FTPS auf den Webspace geladen; der Browser lädt die statische Website und spricht mit einer kleinen PHP-API für Rückmeldungen und Ortschronik" width="100%"></p>
+
+<sub>Quelle: <a href="docs/architecture.mmd">docs/architecture.mmd</a> (Mermaid)</sub>
+
+**So funktioniert es**
+- **Alles Rechenintensive passiert vorher.** Die Skripte in `build/` holen die offenen Daten, ordnen jeden Ort per Punkt-in-Polygon seinem Land von 1939 zu, prüfen das gegen die Gemeindeverzeichnisse von 1945 und erzeugen JSON-Daten und statische Seiten.
+- **Die Website ist statisch:** `index.html` mit `app.js` und Leaflet lädt die JSON-Dateien und sucht im Browser – schnell, ohne Datenbank, auf einfachem Webspace.
+- **Nur Mitmachen braucht einen Server:** Eine kleine PHP-API mit SQLite nimmt Rückmeldungen und Chronik-Einträge an, geschützt durch ein Proof-of-Work-Captcha statt Tracking.
+- **Deploy** lädt nur den committeten und gepushten Stand hoch (`deploy/deploy.sh`, FTPS).
 
 ## Inhalt
 
@@ -129,6 +145,11 @@ php -S 127.0.0.1:8099 -t public     # PHP ≥ 8.1 mit pdo_sqlite
 - Keine Cookies für Besucher*innen, kein Tracking, keine IP-Adressen in der Datenbank – nur ein täglich wechselnder Hash für das Rate-Limit, der nach 7 Tagen automatisch aus den Einträgen entfernt wird. Erledigte Rückmeldungen werden nach 6 Monaten automatisch gelöscht (`purge_old()` in `api/lib.php`).
 - Schriften (Barlow Condensed, IBM Plex Mono, Source Serif 4; SIL OFL) und Leaflet (BSD-2) liegen unter `public/assets/` – keine Anfragen an Google Fonts oder CDNs. Externe Abrufe gibt es nur noch für OSM-Kartenkacheln und Wikimedia-Bilder; beides steht in der [Datenschutzerklärung](public/datenschutz.html).
 - Moderation unter `/api/admin.php`; das Token steht in `api/config.php` (siehe `config.sample.php`, nicht im Repo).
+
+## Status & nächste Schritte
+
+- **Live** unter [baden-oder-württemberg.de](https://baden-oder-württemberg.de) mit 14.558 Einträgen; Berichtigungen kommen über die Rückmeldefunktion auf der Website.
+- Hinweise und Fehler gerne auch als [Issue](https://github.com/sgitaize/baden-oder-wuerttemberg/issues).
 
 ## Lizenzen
 

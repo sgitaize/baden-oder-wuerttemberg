@@ -1,0 +1,34 @@
+flowchart LR
+  subgraph Src["Offene Daten"]
+    OHM("<b>OpenHistoricalMap</b><br/><small>Ländergrenzen 1939</small>")
+    OSM("<b>OpenStreetMap</b><br/><small>Orte · Gemeinden · Kreise</small>")
+    TER("<b>territorial.de</b><br/><small>Gemeinden 1945</small>")
+    WD("<b>Wikidata · Commons</b><br/><small>Steckbriefe · Wappen · Fotos</small>")
+  end
+  subgraph Build["Aufbereitung  ·  build/"]
+    FE("<b>Abruf</b><br/><small><code>fetch.sh · fetch_*.py</code></small>")
+    BU("<b>Zuordnung</b><br/><small><code>build.py</code> · shapely</small><br/><small>Punkt-in-Polygon · Gegenprobe</small>")
+    PG("<b>Seiten</b><br/><small><code>pages.py</code> · Gemeinde · Kreis · Quiz</small>")
+    FE --> BU --> PG
+  end
+  subgraph Web["Webspace  ·  public/"]
+    ST("<b>Website</b><br/><small><code>index.html · app.js</code> · Leaflet</small><br/><small><code>data/*.json</code> · statische Seiten</small>")
+    API("<b>API</b><br/><small>PHP · SQLite</small><br/><small>Rückmeldungen · Ortschronik</small>")
+  end
+  B("<b>Browser</b><br/><small>ohne Cookies · Captcha per Proof of Work</small>")
+  OHM --> FE
+  OSM --> FE
+  TER --> FE
+  WD --> FE
+  PG -->|"deploy.sh · FTPS"| ST
+  ST <--> B
+  API <-->|"fetch · JSON"| B
+
+  classDef client stroke:#58a6ff,stroke-width:1.5px
+  classDef core stroke:#f0883e,stroke-width:1.5px
+  classDef server stroke:#3fb950,stroke-width:1.5px
+  classDef ext stroke:#a371f7,stroke-width:1.5px
+  class B client
+  class FE,BU,PG core
+  class ST,API server
+  class OHM,OSM,TER,WD ext
