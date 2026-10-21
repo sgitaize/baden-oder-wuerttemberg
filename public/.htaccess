@@ -1,3 +1,11 @@
+# PHP2Shell (CVE-2026-109618/-109619): multipart/form-data sperren, bis das
+# Hosting gepatchtes PHP hat. Die Seite selbst sendet nur JSON.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Content-Type} multipart/ [NC]
+  RewriteRule .* - [F,L]
+</IfModule>
+
 # Kompression und Caching (Daten ändern sich nur mit einem Deploy)
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE application/json text/css application/javascript text/javascript text/html image/svg+xml
